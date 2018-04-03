@@ -79,6 +79,18 @@ public class LogFragment extends Fragment {
 
     }
 
+    public boolean checkOverflow() {
+        /*
+        Very naive solution. Writing out to a log is possible solution if log needs preserved,
+        however parsing with substring will have a very severe impact on performance
+         */
+        if (mTextViewTraffic.getText().length() > DEFAULT_MAX_CHARACTERS) {
+            clearLogText();
+            return true;
+        }
+        return false;
+    }
+
     public void appendLogText(String text) {
         /*
         TODO: Re-add overflow control
@@ -92,13 +104,8 @@ public class LogFragment extends Fragment {
 //        }
 //        mTextViewTraffic.setText(newText);
 
-        /*
-        Very naive solution. Writing out to a log is possible solution if log needs preserved,
-        however parsing with substring will have a very severe impact on performance
-         */
-        if (mTextViewTraffic.getText().length() > 20000) {
-            mTextViewTraffic.setText("");
-        }
+        checkOverflow();
+
         mTextViewTraffic.append(text);
 
         final int scrollAmt = mTextViewTraffic.getLayout().getLineTop(mTextViewTraffic.getLineCount())
@@ -110,7 +117,7 @@ public class LogFragment extends Fragment {
         }
     }
 
-    public void clearLogText(String text) {
+    public void clearLogText() {
         mTextViewTraffic.setText("");
     }
 

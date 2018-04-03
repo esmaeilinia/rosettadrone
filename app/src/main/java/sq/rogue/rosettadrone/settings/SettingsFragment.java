@@ -54,14 +54,14 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
         findPreference("pref_gcs_ip").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                return Patterns.IP_ADDRESS.matcher((String) newValue).matches();
+                return validate_ip((String) newValue);
             }
         });
 
         findPreference("pref_video_ip").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                return Patterns.IP_ADDRESS.matcher((String) newValue).matches();
+                return validate_ip((String) newValue);
             }
         });
 
@@ -80,6 +80,9 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
         });
     }
 
+    public boolean validate_ip(String ip) {
+        return Patterns.IP_ADDRESS.matcher(ip).matches();
+    }
 
     /**
      *
