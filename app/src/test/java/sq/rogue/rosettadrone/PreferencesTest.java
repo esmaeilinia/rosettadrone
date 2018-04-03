@@ -2,7 +2,6 @@ package sq.rogue.rosettadrone;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.support.test.InstrumentationRegistry;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -25,34 +24,29 @@ public class PreferencesTest {
     @Before
     public void before() {
         settingsFragment = Mockito.mock(SettingsFragment.class);
-        Mockito.when(settingsFragment.validate_ip(anyString())).thenCallRealMethod();
+        Mockito.when(settingsFragment.validate_port(anyInt())).thenCallRealMethod();
+
 //        sharedPreferences = Mockito.mock(SharedPreferences.class);
     }
 
     @Test
-    public void validIPTest() {
-        System.out.println(settingsFragment.validate_ip("192.168.0.1"));
-        assertTrue(settingsFragment.validate_ip("127.0.0.1"));
+    public void validLowPortTest() {
+        assertTrue(settingsFragment.validate_port(1));
     }
 
     @Test
-    public void invalidIPTest() {
-        assertFalse(settingsFragment.validate_ip("266.212.231.020"));
+    public void validHighPortTest() {
+        assertTrue(settingsFragment.validate_port(65535));
     }
 
     @Test
-    public void invalidShortIPTest() {
-        assertFalse(settingsFragment.validate_ip("127.0.1"));
+    public void invalidHighPortTest() {
+        assertFalse(settingsFragment.validate_port(65536));
+    }
+    @Test
+    public void invalidLowPortTest() {
+        assertFalse(settingsFragment.validate_port(0));
     }
 
-    @Test
-    public void invalidLongIPTest() {
-        assertFalse(settingsFragment.validate_ip("127.0.0.1.1"));
-    }
-
-    @Test
-    public void invalidZeroIPTest() {
-        assertFalse(settingsFragment.validate_ip("0.0.0.0"));
-    }
 
 }
