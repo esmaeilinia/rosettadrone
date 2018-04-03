@@ -52,9 +52,11 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     }
 
     /**
-     *
+     * Sets validation listeners for all shared preferences.
      */
+    // TODO: Refactor
     public void setListeners() {
+
         findPreference("pref_gcs_ip").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
@@ -105,7 +107,8 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     }
 
     /**
-     *
+     * Called when the settings pane is made visible and/or recreated. Registers a listener for
+     * shared preferences and updates the shared preferences to the most recent values.
      */
     @Override
     public void onResume() {
@@ -134,7 +137,8 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     }
 
     /**
-     *
+     * Called when the settings view is moved out of view or closed. Unregisters shared preference
+     * listener.
      */
     @Override
     public void onPause() {
@@ -143,7 +147,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     }
 
     /**
-     *
+     * Called when the main activity is destroyed.
      */
     @Override
     public void onDestroy() {
