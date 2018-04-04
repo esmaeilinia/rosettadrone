@@ -74,6 +74,18 @@ public class LogFragment extends Fragment {
         return view;
     }
 
+    /**
+     *
+     * @param textView
+     */
+    public void setTextView(TextView textView) {
+        mTextViewTraffic = textView;
+    }
+
+    /**
+     *
+     * @param savedInstanceState
+     */
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -158,7 +170,7 @@ public class LogFragment extends Fragment {
     public String getLogText() {
         if (mTextViewTraffic != null)
             return mTextViewTraffic.getText().toString();
-        return "";
+        return null;
     }
 
     /**
