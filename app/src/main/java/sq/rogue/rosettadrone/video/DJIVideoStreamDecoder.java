@@ -573,6 +573,11 @@ public class DJIVideoStreamDecoder implements NativeHelper.NativeDataListener {
             return;
         }
 
+        //----------
+        // Added: send H264 (including i-frames) to the Video Service for RTP packing and transmission
+        if (frameDataListener != null)
+            frameDataListener.onFrameDataReceived(inputFrame.videoBuffer, width, height);
+        //-----------
         int inIndex = codec.dequeueInputBuffer(0);
 
         // Decode the frame using MediaCodec
@@ -675,9 +680,6 @@ public class DJIVideoStreamDecoder implements NativeHelper.NativeDataListener {
             DJIFrame newFrame = new DJIFrame(data, size, currentTime, currentTime, isKeyFrame,
                     frameNum, frameIndex, width, height);
 
-            // ADDED
-            if (frameDataListener != null)
-                frameDataListener.onFrameDataReceived(data, width, height);
 
             dataHandler.obtainMessage(MSG_FRAME_QUEUE_IN, newFrame).sendToTarget();
 
