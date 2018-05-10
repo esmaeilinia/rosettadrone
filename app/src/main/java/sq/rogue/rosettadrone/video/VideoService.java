@@ -34,7 +34,7 @@ import dji.sdk.camera.VideoFeeder;
 import dji.thirdparty.sanselan.util.IOUtils;
 import sq.rogue.rosettadrone.DroneModel;
 
-public class VideoService extends Service implements DJIVideoStreamDecoder.IYuvDataListener, DJIVideoStreamDecoder.IFrameDataListener {
+public class VideoService extends Service implements DJIVideoStreamDecoder.IFrameDataListener {
 
     private static final String TAG = VideoService.class.getSimpleName();
 
@@ -61,11 +61,6 @@ public class VideoService extends Service implements DJIVideoStreamDecoder.IYuvD
     protected SharedPreferences sharedPreferences;
 
     protected Thread thread;
-
-    @Override
-    public void onYuvDataReceived(byte[] yuvFrame, int width, int height) {
-
-    }
 
     @Override
     public void onFrameDataReceived(byte[] frame, int width, int height) {
@@ -203,7 +198,6 @@ public class VideoService extends Service implements DJIVideoStreamDecoder.IYuvD
     private void initVideoStreamDecoder() {
         NativeHelper.getInstance().init();
         DJIVideoStreamDecoder.getInstance().init(getApplicationContext(), null);
-        DJIVideoStreamDecoder.getInstance().setYuvDataListener(this);
         DJIVideoStreamDecoder.getInstance().setFrameDataListener(this);
         DJIVideoStreamDecoder.getInstance().resume();
 
