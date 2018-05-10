@@ -288,9 +288,6 @@ public class DJIVideoStreamDecoder implements NativeHelper.NativeDataListener {
                         try {
                             decodeFrame();
                         } catch (Exception e) {
-                            loge("handle frame error: " + e);
-                            if (e instanceof MediaCodec.CodecException) {
-                            }
                             e.printStackTrace();
                         } finally {
                             if (frameQueue.size() > 0) {
@@ -326,13 +323,8 @@ public class DJIVideoStreamDecoder implements NativeHelper.NativeDataListener {
     }
 
 
-    /**
-     * Queue in the frame.
-     *
-     * @param msg
-     */
     private void onFrameQueueIn(Message msg) {
-        DJIFrame inputFrame = (DJIFrame) msg.obj;
+        DJIFrame inputFrame = (DJIFrame)msg.obj;
         if (inputFrame == null) {
             return;
         }
@@ -361,6 +353,7 @@ public class DJIVideoStreamDecoder implements NativeHelper.NativeDataListener {
                 );
                 frameQueue.clear();
                 frameQueue.offer(iFrame); // Queue in the I frame.
+
                 logd("add iframe success!!!!");
                 hasIFrameInQueue = true;
             } else if (inputFrame.isKeyFrame) {
@@ -387,23 +380,12 @@ public class DJIVideoStreamDecoder implements NativeHelper.NativeDataListener {
         }
     }
 
-    /**
-     * Dequeue the frames from the queue and decode them using the hardware decoder.
-     *
-     * @throws Exception
-     */
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void decodeFrame() throws Exception {
         DJIFrame inputFrame = frameQueue.poll();
-        if (inputFrame == null) {
+        if (inputFrame == null)
             return;
-        }
-
-        //----------
-        // Added: send H264 (including i-frames) to the Video Service for RTP packing and transmission
         if (frameDataListener != null)
             frameDataListener.onFrameDataReceived(inputFrame.videoBuffer, width, height);
-        //-----------
     }
 
     /**
@@ -443,9 +425,7 @@ public class DJIVideoStreamDecoder implements NativeHelper.NativeDataListener {
             DJIFrame newFrame = new DJIFrame(data, size, currentTime, currentTime, isKeyFrame,
                     frameNum, frameIndex, width, height);
 
-
             dataHandler.obtainMessage(MSG_FRAME_QUEUE_IN, newFrame).sendToTarget();
-
         }
     }
 
