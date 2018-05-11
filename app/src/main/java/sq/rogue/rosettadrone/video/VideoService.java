@@ -24,6 +24,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -64,6 +66,16 @@ public class VideoService extends Service implements DJIVideoStreamDecoder.IFram
 
     @Override
     public void onFrameDataReceived(byte[] frame, int width, int height) {
+
+        // This code block sends raw H264 instead of RTP packing, and is used for troubleshooting
+//        try {
+//            InetAddress address = InetAddress.getByName("192.168.2.35");
+//            DatagramPacket packet = new DatagramPacket(frame, frame.length, address, 5600);
+//            DatagramSocket datagramSocket = new DatagramSocket();
+//            datagramSocket.send(packet);
+//        }
+//        catch(Exception e) {}
+
         splitNALs(frame);
     }
 
