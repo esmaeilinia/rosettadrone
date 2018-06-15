@@ -1,7 +1,5 @@
 package sq.rogue.rosettadrone.video;
 
-import android.annotation.TargetApi;
-import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -10,10 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.icu.util.Output;
-import android.net.LocalSocket;
-import android.net.LocalSocketAddress;
-import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -22,55 +16,34 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 
 import dji.common.product.Model;
-import dji.sdk.base.BaseProduct;
 import dji.sdk.camera.VideoFeeder;
-import dji.thirdparty.sanselan.util.IOUtils;
-import sq.rogue.rosettadrone.DroneModel;
 import sq.rogue.rosettadrone.R;
 
 import static android.support.v4.app.NotificationCompat.PRIORITY_MIN;
 
 public class VideoService extends Service implements DJIVideoStreamDecoder.IYuvDataListener, DJIVideoStreamDecoder.IFrameDataListener {
 
-    private static final String TAG = VideoService.class.getSimpleName();
-
-
     public static final String ACTION_START = "VIDEO.START";
     public static final String ACTION_STOP = "VIDEO.STOP";
     public static final String ACTION_RESTART = "VIDEO.RESTART";
     public static final String ACTION_UPDATE = "VIDEO.UPDATE";
-
     public static final String ACTION_DRONE_CONNECTED = "VIDEO.DRONE_CONNECTED";
     public static final String ACTION_DRONE_DISCONNECTED = "VIDEO.DRONE_DISCONNECTED";
-
     public static final String ACTION_SET_MODEL = "VIDEO.SET_MODEL";
     public static final String ACTION_SEND_NAL = "VIDEO.SEND_NAL";
-
-
-
-    private boolean isRunning = false;
-
+    private static final String TAG = VideoService.class.getSimpleName();
     protected H264Packetizer mPacketizer;
     protected VideoFeeder.VideoDataCallback mReceivedVideoDataCallBack = null;
-
     protected Model mModel;
     protected SharedPreferences sharedPreferences;
-
     protected Thread thread;
+    private boolean isRunning = false;
 
     @Override
     public void onYuvDataReceived(byte[] yuvFrame, int width, int height) {
@@ -136,6 +109,7 @@ public class VideoService extends Service implements DJIVideoStreamDecoder.IYuvD
         };
         thread.start();
     }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
