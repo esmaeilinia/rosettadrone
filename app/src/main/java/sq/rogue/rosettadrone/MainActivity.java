@@ -837,10 +837,6 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, VideoService.class);
         intent.setAction(action);
 
-//        for (Object extra : extras) {
-//            intent.putExtra(extra);
-//        }
-
         return intent;
     }
 
