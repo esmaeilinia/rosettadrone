@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -23,11 +24,12 @@ import java.util.Arrays;
 
 import dji.common.product.Model;
 import dji.sdk.camera.VideoFeeder;
+import sq.rogue.rosettadrone.IVideoService;
 import sq.rogue.rosettadrone.R;
 
 import static android.support.v4.app.NotificationCompat.PRIORITY_MIN;
 
-public class VideoService extends Service implements DJIVideoStreamDecoder.IYuvDataListener, DJIVideoStreamDecoder.IFrameDataListener {
+public class VideoService extends Service {
 
     public static final String ACTION_START = "VIDEO.START";
     public static final String ACTION_STOP = "VIDEO.STOP";
@@ -45,14 +47,8 @@ public class VideoService extends Service implements DJIVideoStreamDecoder.IYuvD
     protected Thread thread;
     private boolean isRunning = false;
 
-    @Override
-    public void onYuvDataReceived(byte[] yuvFrame, int width, int height) {
-
-    }
-
-    @Override
-    public void onFrameDataReceived(byte[] frame, int width, int height) {
-        splitNALs(frame);
+    public boolean isRunning() {
+        return isRunning;
     }
 
     @Override
@@ -116,12 +112,6 @@ public class VideoService extends Service implements DJIVideoStreamDecoder.IYuvD
 
     }
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
     public void setActionDroneConnected() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             String channelID = createNotificationChannel();
@@ -182,70 +172,33 @@ public class VideoService extends Service implements DJIVideoStreamDecoder.IYuvD
 //        mGCSCommunicator.cancel(true);
     }
 
-    public void splitNALs(byte[] buffer) {
-        // One H264 frame can contain multiple NALs
-        int packet_start_idx = 0;
-        int packet_end_idx = 0;
-        if (buffer.length < 4)
-            return;
-        for (int i = 3; i < buffer.length - 3; i++) {
-            // This block handles all but the last NAL in the frame
-            if ((buffer[i] & 0xff) == 0 && (buffer[i + 1] & 0xff) == 0 && (buffer[i + 2] & 0xff) == 0 && (buffer[i + 3] & 0xff) == 1) {
-                packet_end_idx = i;
-                byte[] packet = Arrays.copyOfRange(buffer, packet_start_idx, packet_end_idx);
-                sendNAL(packet);
-                packet_start_idx = i;
-            }
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mBinder;
+    }
 
+    private IVideoService.Stub mBinder = new IVideoService.Stub() {
 
+        @Override
+        public boolean start() throws RemoteException {
+            return false;
         }
-        // This block handles the last NAL in the frame, or the single NAL if only one exists
-        packet_end_idx = buffer.length;
-        byte[] packet = Arrays.copyOfRange(buffer, packet_start_idx, packet_end_idx);
-        sendNAL(packet);
-        //sendPacket(packet);
-    }
 
-    private void initVideoStreamDecoder() {
-        NativeHelper.getInstance().init();
-        DJIVideoStreamDecoder.getInstance().init(getApplicationContext(), null);
-        DJIVideoStreamDecoder.getInstance().setYuvDataListener(this);
-        DJIVideoStreamDecoder.getInstance().setFrameDataListener(this);
-        DJIVideoStreamDecoder.getInstance().resume();
-
-    }
-
-    private void initPacketizer() {
-        if (mPacketizer != null && mPacketizer.getRtpSocket() != null)
-            mPacketizer.getRtpSocket().close();
-        mPacketizer = new H264Packetizer();
-        String videoIPString = "127.0.0.1";
-        if (sharedPreferences.getBoolean("pref_external_gcs", false))
-            if (!sharedPreferences.getBoolean("pref_combined_gcs", false)) {
-                videoIPString = sharedPreferences.getString("pref_gcs_ip", "127.0.0.1");
-            } else {
-                videoIPString = sharedPreferences.getString("pref_video_ip", "127.0.0.1");
-            }
-        int videoPort = Integer.parseInt(sharedPreferences.getString("pref_video_port", "5600"));
-        try {
-            mPacketizer.getRtpSocket().setDestination(InetAddress.getByName(videoIPString), videoPort, 5000);
-//            logMessageDJI("Starting GCS video link: " + videoIPString + ":" + String.valueOf(videoPort));
-
-        } catch (UnknownHostException e) {
-            Log.d(TAG, "exception", e);
-//            logMessageDJI("Unknown video host: " + videoIPString + ":" + String.valueOf(videoPort));
+        @Override
+        public boolean stop() throws RemoteException {
+            return false;
         }
-    }
 
-    protected void sendNAL(byte[] buffer) {
-        // Pack a single NAL for RTP and send
-        if (mPacketizer != null) {
-            mPacketizer.setInputStream(new ByteArrayInputStream(buffer));
-            mPacketizer.run();
+        @Override
+        public boolean restart() throws RemoteException {
+            return false;
         }
-    }
 
-    public boolean isRunning() {
-        return isRunning;
-    }
+        @Override
+        public boolean update() throws RemoteException {
+            return false;
+        }
+
+    };
 }

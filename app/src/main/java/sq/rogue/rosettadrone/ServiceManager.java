@@ -13,18 +13,24 @@ import android.util.Log;
 /**
  * Class to manage the telemetry and video services.
  */
-public class ServiceManager extends Service {
+public class ServiceManager {
     private static final String TAG = ServiceManager.class.getSimpleName();
 
+    private boolean isVideoServiceRunning = false;
+    private boolean isTelemetryServiceRunning = false;
+
+    public ServiceManager() {
+
+    }
+
+    //region services and connections
+    //---------------------------------------------------------------------------------------
 
     private IVideoService iVideoService;
     private ServiceConnection mVideoConnection = new ServiceConnection() {
 
-
         @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-
+        public void onServiceConnected(ComponentName className, IBinder service) {
             Log.d(TAG, "VIDEO SERVICE CONNECTED");
             iVideoService = IVideoService.Stub.asInterface(service);
         }
@@ -39,12 +45,9 @@ public class ServiceManager extends Service {
     private ITelemetryService iTelemetryService;
     private ServiceConnection mTelemetryConnection = new ServiceConnection() {
 
-
         @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-
-            Log.d(TAG, "VIDEO SERVICE CONNECTED");
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            Log.d(TAG, "TELEMETRY SERVICE CONNECTED");
             iTelemetryService = ITelemetryService.Stub.asInterface(service);
         }
 
@@ -55,6 +58,171 @@ public class ServiceManager extends Service {
 
     };
 
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region telemetry interface
+    //---------------------------------------------------------------------------------------
+
+    /**
+     *
+     * @return true if the call to the video service is successful otherwise false.
+     */
+    protected boolean startTelemetryService() {
+        if (iTelemetryService != null) {
+            try {
+                isTelemetryServiceRunning = iTelemetryService.start();
+
+                return isTelemetryServiceRunning;
+            } catch (RemoteException e) {
+                e.printStackTrace();
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     *
+     * @return true if the call to the video service is successful otherwise false.
+     */
+    protected boolean stopTelemetryService() {
+        if (iTelemetryService != null) {
+            try {
+                isTelemetryServiceRunning = !iTelemetryService.stop();
+
+                return !isTelemetryServiceRunning;
+            } catch (RemoteException e) {
+                e.printStackTrace();
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     *
+     * @return true if the call to the video service is successful otherwise false.
+     */
+    protected boolean restartTelemetryService() {
+        if (iTelemetryService != null) {
+            try {
+                isTelemetryServiceRunning =  iTelemetryService.restart();
+
+                return isTelemetryServiceRunning;
+            } catch (RemoteException e) {
+                e.printStackTrace();
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     *
+     * @return true if the call to the video service is successful otherwise false.
+     */
+    protected boolean updateTelemetryService() {
+        if (iTelemetryService != null) {
+            try {
+                return iTelemetryService.update();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region video interface
+    //---------------------------------------------------------------------------------------
+
+    /**
+     *
+     * @return true if the call to the video service is successful otherwise false.
+     */
+    protected boolean startVideoService() {
+        if (iVideoService != null) {
+            try {
+                isVideoServiceRunning = iVideoService.start();
+
+                return isVideoServiceRunning;
+            } catch (RemoteException e) {
+                e.printStackTrace();
+                return false;
+            }
+        } else {
+            return false;
+        }
+
+    }
+
+    /**
+     *
+     * @return true if the call to the video service is successful otherwise false.
+     */
+    protected boolean stopVideoService() {
+        if (iVideoService != null) {
+            try {
+                isVideoServiceRunning = !iVideoService.stop();
+
+                return !isVideoServiceRunning;
+            } catch (RemoteException e) {
+                e.printStackTrace();
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     *
+     * @return true if the call to the video service is successful otherwise false.
+     */
+    protected boolean restartVideoService() {
+        if (iVideoService != null) {
+            try {
+                isVideoServiceRunning = iVideoService.restart();
+
+                return isVideoServiceRunning;
+            } catch (RemoteException e) {
+                e.printStackTrace();
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     *
+     * @return true if the call to the video service is successful otherwise false.
+     */
+    protected boolean updateVideoService() {
+        if (iVideoService != null) {
+            try {
+                return iVideoService.update();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region bindings
+    //---------------------------------------------------------------------------------------
+
     /**
      * Binds the {@link ServiceManager} to both the {@link sq.rogue.rosettadrone.video.VideoService}
      * and {@link sq.rogue.rosettadrone.telemetry.TelemetryService}. If either service fails to bind
@@ -64,25 +232,16 @@ public class ServiceManager extends Service {
      * and {@link ServiceManager#bindVideoService()} methods.
      * @return True if both services bind successfully otherwise returns false.
      */
-    private boolean bindServices() {
+    protected boolean bindServices() {
         //Telemetry binding
-        Intent telemetryIntent = new Intent();
-
-        telemetryIntent.setComponent(new ComponentName("sq.rogue.rosettadrone",
-                "sq.rogue.rosettadrone.telemetry.TelemetryService"));
-
-        boolean telemetryResult = bindService(telemetryIntent, mTelemetryConnection, BIND_AUTO_CREATE);
+        boolean telemetryResult = bindTelemetryService();
 
         if (!telemetryResult) {
             return false;
         }
+
         //Video binding
-        Intent videoIntent = new Intent();
-
-        videoIntent.setComponent(new ComponentName("sq.rogue.rosettadrone",
-                "sq.rogue.rosettadrone.video.VideoService"));
-
-        boolean videoResult = bindService(videoIntent, mVideoConnection, BIND_AUTO_CREATE);
+        boolean videoResult = bindVideoService();
 
         if (!videoResult) {
             return false;
@@ -94,9 +253,9 @@ public class ServiceManager extends Service {
 
     /**
      * Binds the ServiceManager to the {@link sq.rogue.rosettadrone.telemetry.TelemetryService}.
-     * @return True if the binding is successfuly otherwise false.
+     * @return True if the binding is successfully otherwise false.
      */
-    private boolean bindTelemetryService() {
+    protected boolean bindTelemetryService() {
         Intent telemetryIntent = new Intent();
 
         telemetryIntent.setComponent(new ComponentName("sq.rogue.rosettadrone",
@@ -107,9 +266,9 @@ public class ServiceManager extends Service {
 
     /**
      * Binds the ServiceManager to the {@link sq.rogue.rosettadrone.video.VideoService}.
-     * @return True if the binding is successfuly otherwise false.
+     * @return True if the binding is successfully otherwise false.
      */
-    private boolean bindVideoService() {
+    protected boolean bindVideoService() {
 
         Intent videoIntent = new Intent();
 
@@ -119,15 +278,7 @@ public class ServiceManager extends Service {
         return bindService(videoIntent, mVideoConnection, BIND_AUTO_CREATE);
     }
 
+    //---------------------------------------------------------------------------------------
+    //endregion
 
-
-
-
-
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
 }
