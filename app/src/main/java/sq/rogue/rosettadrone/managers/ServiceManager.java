@@ -1,4 +1,4 @@
-package sq.rogue.rosettadrone;
+package sq.rogue.rosettadrone.managers;
 
 import android.app.Service;
 import android.content.ComponentName;
@@ -9,19 +9,25 @@ import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import sq.rogue.rosettadrone.ITelemetryService;
+import sq.rogue.rosettadrone.IVideoService;
+
 
 /**
  * Class to manage the telemetry and video services.
  */
-public class ServiceManager {
+public class ServiceManager extends Service{
     private static final String TAG = ServiceManager.class.getSimpleName();
 
-    private boolean isVideoServiceRunning = false;
-    private boolean isTelemetryServiceRunning = false;
+    private boolean isVideoServiceRunning;
+    private boolean isTelemetryServiceRunning;
 
     public ServiceManager() {
-
+        isVideoServiceRunning = false;
+        isTelemetryServiceRunning = false;
     }
+
+
 
     //region services and connections
     //---------------------------------------------------------------------------------------
@@ -280,5 +286,11 @@ public class ServiceManager {
 
     //---------------------------------------------------------------------------------------
     //endregion
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
 
 }

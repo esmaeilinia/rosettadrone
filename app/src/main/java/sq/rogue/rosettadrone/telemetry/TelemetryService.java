@@ -7,11 +7,8 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
-import dji.common.product.Model;
 import sq.rogue.rosettadrone.ITelemetryService;
-import sq.rogue.rosettadrone.video.VideoService;
 
 public class TelemetryService extends Service implements ITelemetryService {
 
@@ -61,4 +58,28 @@ public class TelemetryService extends Service implements ITelemetryService {
     public IBinder onBind(Intent intent) {
         return null;
     }
+
+    private ITelemetryService.Stub mBinder = new ITelemetryService.Stub() {
+
+        @Override
+        public boolean start() throws RemoteException {
+            return false;
+        }
+
+        @Override
+        public boolean stop() throws RemoteException {
+            return false;
+        }
+
+        @Override
+        public boolean restart() throws RemoteException {
+            return false;
+        }
+
+        @Override
+        public boolean update() throws RemoteException {
+            return false;
+        }
+
+    };
 }

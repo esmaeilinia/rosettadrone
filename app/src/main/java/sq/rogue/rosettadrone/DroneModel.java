@@ -77,7 +77,7 @@ import static com.MAVLink.enums.MAV_COMPONENT.MAV_COMP_ID_AUTOPILOT1;
 import static sq.rogue.rosettadrone.util.getTimestampMicroseconds;
 
 
-public class DroneModel implements CommonCallbacks.CompletionCallback {
+public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCallback {
     private static final int NOT_USING_GCS_COMMANDED_MODE = -1;
     private final String TAG = "RosettaDrone";
     private Aircraft djiAircraft;

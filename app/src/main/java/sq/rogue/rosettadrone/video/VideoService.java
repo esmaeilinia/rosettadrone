@@ -122,8 +122,8 @@ public class VideoService extends Service {
                     .build();
             startForeground(1, notification);
         }
-        initVideoStreamDecoder();
-        initPacketizer();
+//        initVideoStreamDecoder();
+//        initPacketizer();
 
         mReceivedVideoDataCallBack = new VideoFeeder.VideoDataCallback() {
 
