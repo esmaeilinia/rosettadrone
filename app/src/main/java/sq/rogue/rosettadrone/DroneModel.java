@@ -69,6 +69,7 @@ import dji.sdk.battery.Battery;
 import dji.sdk.mission.MissionControl;
 import dji.sdk.mission.waypoint.WaypointMissionOperator;
 import dji.sdk.products.Aircraft;
+import sq.rogue.rosettadrone.drone.RosettaMissionOperatorListener;
 
 import static com.MAVLink.enums.MAV_CMD.MAV_CMD_COMPONENT_ARM_DISARM;
 import static com.MAVLink.enums.MAV_CMD.MAV_CMD_DO_DIGICAM_CONTROL;
@@ -1022,7 +1023,7 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
 
     public void do_takeoff() {
         if (mSafetyEnabled) {
-            parent.logMessageDJI("You must turn off safety_layout to takeoff");
+            parent.logMessageDJI("You must turn off the safety to takeoff");
             send_command_ack(MAV_CMD_NAV_TAKEOFF, MAV_RESULT.MAV_RESULT_DENIED);
             return;
         }

@@ -2,23 +2,33 @@ package sq.rogue.rosettadrone.drone;
 
 import android.support.annotation.NonNull;
 
+import com.MAVLink.enums.MAV_CMD;
+import com.MAVLink.enums.MAV_RESULT;
+
 import java.util.Arrays;
 
 import dji.common.airlink.SignalQualityCallback;
+import dji.common.battery.AggregationState;
 import dji.common.battery.BatteryState;
+import dji.common.product.Model;
 import dji.common.remotecontroller.HardwareState;
 import dji.sdk.airlink.AirLink;
 import dji.sdk.battery.Battery;
 import dji.sdk.remotecontroller.RemoteController;
 
+
 /**
- * Class that acts as an intermediary to control a Drone
+ * Class that acts as an intermediary to control a Drone. This class handles all direct communication
+ * between the application and the drone.
  */
 public class DroneManager {
     private Drone mDrone;
 
     private int mUplinkQuality;
     private int mDownlinkQuality;
+
+    //region constructors
+    //---------------------------------------------------------------------------------------
 
     public DroneManager(Drone drone) {
         mUplinkQuality = 0;
@@ -29,6 +39,9 @@ public class DroneManager {
         }
         setupDrone(drone);
     }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
 
     private boolean setupDrone(Drone drone) {
         mDrone = drone;
@@ -46,12 +59,11 @@ public class DroneManager {
             return false;
         }
 
-        if (!setLinkQualityCallbacks(null, null)) {
-            return false;
-        }
-
-        return true;
+        return setLinkQualityCallbacks(null, null);
     }
+
+    //region setup
+    //---------------------------------------------------------------------------------------
 
     /**
      *
@@ -102,9 +114,13 @@ public class DroneManager {
 
 
     /**
-     *
-     * @param callback
-     * @return
+     * Sets the callback for battery state changes. The M600 uses an aggregation callback due to having
+     * multiple batteries, and as a result passing a pre-defined callback when using the M600 is
+     * NOT currently supported. Pass in null when using the M600.
+     * @param callback The callback to be called whenever battery state changes. Should be null if
+     *                 you want the default or are using the M600.
+     * @return true if the callback is set successfully. If the callback can't be set it means the
+     * battery is null or the Drone was not setup prior to setting the callback.
      */
     private boolean setBatteryStateCallback(BatteryState.Callback callback) {
         //TODO
@@ -116,12 +132,30 @@ public class DroneManager {
 
         if (battery != null) {
             if (callback == null) {
-                battery.setStateCallback(new BatteryState.Callback() {
-                    @Override
-                    public void onUpdate(BatteryState batteryState) {
 
-                    }
-                });
+                if (mDrone.getModel() == Model.MATRICE_600 || mDrone.getModel() == Model.MATRICE_600_PRO) {
+                    Battery.setAggregationStateCallback(new AggregationState.Callback() {
+                        @Override
+                        public void onUpdate(AggregationState aggregationState) {
+                            mDrone.setCapacity(aggregationState.getFullChargeCapacity());
+                            mDrone.setChargeRemaining(aggregationState.getChargeRemaining());
+                            mDrone.setVoltage(aggregationState.getVoltage());
+                            mDrone.setCurrent(Math.abs(aggregationState.getCurrent()));
+                            mDrone.setTemp(aggregationState.getHighestTemperature());
+                        }
+                    });
+                } else {
+                    battery.setStateCallback(new BatteryState.Callback() {
+                        @Override
+                        public void onUpdate(BatteryState batteryState) {
+                            mDrone.setCapacity(batteryState.getFullChargeCapacity());
+                            mDrone.setChargeRemaining(batteryState.getChargeRemaining());
+                            mDrone.setVoltage(batteryState.getVoltage());
+                            mDrone.setCurrent(Math.abs(batteryState.getCurrent()));
+                            mDrone.setTemp(batteryState.getTemperature());
+                        }
+                    });
+                }
             } else {
                 battery.setStateCallback(callback);
             }
@@ -133,10 +167,13 @@ public class DroneManager {
     }
 
     /**
-     *
-     * @param downlinkCallback
-     * @param uplinkCallback
-     * @return
+     * Sets the callbacks for when WiFi signal quality changes.
+     * @param downlinkCallback The callback to be called when the downlink quality changes. Should be
+     *                         null if the default is to be set.
+     * @param uplinkCallback The callback to be called when the uplink quality changes. Should be null
+     *                       if the default is to be set.
+     * @return true if the callbacks are successfully set. false if either the airlink is null or the
+     * drone has not be set prior to calling this method.
      */
     private boolean setLinkQualityCallbacks(SignalQualityCallback downlinkCallback,
                                             SignalQualityCallback uplinkCallback) {
@@ -177,5 +214,21 @@ public class DroneManager {
     }
 
 
+    //---------------------------------------------------------------------------------------
+    //endregion
 
+
+    //region commands
+    //---------------------------------------------------------------------------------------
+
+    public int sendTakeoff() {
+        if (mDrone.isSafetyEnabled()) {
+            return MAV_RESULT.MAV_RESULT_DENIED;
+        }
+
+        return MAV_RESULT.MAV_RESULT_ACCEPTED;
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
 }

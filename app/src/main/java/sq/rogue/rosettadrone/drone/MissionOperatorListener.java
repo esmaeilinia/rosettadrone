@@ -1,4 +1,4 @@
-package sq.rogue.rosettadrone;
+package sq.rogue.rosettadrone.drone;
 
 
 import android.support.annotation.NonNull;
@@ -10,23 +10,17 @@ import dji.common.mission.waypoint.WaypointMissionDownloadEvent;
 import dji.common.mission.waypoint.WaypointMissionExecutionEvent;
 import dji.common.mission.waypoint.WaypointMissionUploadEvent;
 import dji.sdk.mission.waypoint.WaypointMissionOperatorListener;
+import sq.rogue.rosettadrone.MainActivity;
 
-class RosettaMissionOperatorListener implements WaypointMissionOperatorListener {
-    private String TAG = "RosettaDrone";
+class MissionOperatorListener implements WaypointMissionOperatorListener {
+    private String TAG = this.getClass().getSimpleName();
     private int WAYPOINT_COUNT = 0;
-    private MainActivity activity;
-
-    public void setMainActivity(MainActivity activity) {
-        this.activity = activity;
-    }
-
     @Override
     public void onDownloadUpdate(@NonNull WaypointMissionDownloadEvent waypointMissionDownloadEvent) {
         // Example of Download Listener
         if (waypointMissionDownloadEvent.getProgress() != null
                 && waypointMissionDownloadEvent.getProgress().isSummaryDownloaded
                 && waypointMissionDownloadEvent.getProgress().downloadedWaypointIndex == (WAYPOINT_COUNT - 1)) {
-            activity.logMessageDJI("Mission download successful!");
         }
         updateWaypointMissionState();
     }
@@ -59,13 +53,11 @@ class RosettaMissionOperatorListener implements WaypointMissionOperatorListener 
 
     @Override
     public void onExecutionStart() {
-        activity.logMessageDJI("Execution started!");
         updateWaypointMissionState();
     }
 
     @Override
     public void onExecutionFinish(@Nullable DJIError djiError) {
-        activity.logMessageDJI("Execution finished!");
         updateWaypointMissionState();
     }
 
