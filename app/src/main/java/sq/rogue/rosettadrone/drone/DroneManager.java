@@ -43,6 +43,12 @@ public class DroneManager {
     //---------------------------------------------------------------------------------------
     //endregion
 
+    /**
+     * Main bootstrapping method for setting up a drone. Calls and sets up all the requisite
+     * parameters for the drone.
+     * @param drone The Drone to setup.
+     * @return true if the setup finished successfully, otherwise false.
+     */
     private boolean setupDrone(Drone drone) {
         mDrone = drone;
 
