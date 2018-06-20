@@ -354,8 +354,8 @@ public class DroneManager {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
-     * @param value
+     * Helper class to make a callback with the desired result code.
+     * @param value A {@link MAV_RESULT} code.
      */
     private void makeCallback(int value) {
         if (mDroneManagerCallback != null) {
@@ -364,14 +364,15 @@ public class DroneManager {
     }
 
     /**
-     *
+     * The callback interface. Called whenever an operation relating to drone operation fails or succeeds.
      */
     public interface IDroneManager {
         void onResult(int result);
     }
 
     /**
-     *
+     * Hook into the callback interface. Only one hook can be acquired at a time. If multiple calls
+     * are made only the most recent is sent a callback.
      * @param droneManagerCallback
      */
     public void setDroneManagerCallback(IDroneManager droneManagerCallback) {
@@ -379,7 +380,7 @@ public class DroneManager {
     }
 
     /**
-     *
+     * Remove the callback hook.
      */
     public void removeDroneManagerCallback() {
         this.mDroneManagerCallback = null;
