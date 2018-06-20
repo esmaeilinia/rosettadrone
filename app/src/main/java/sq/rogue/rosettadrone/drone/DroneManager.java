@@ -24,6 +24,7 @@ import static com.MAVLink.enums.MAV_RESULT.MAV_RESULT_ACCEPTED;
 import static com.MAVLink.enums.MAV_RESULT.MAV_RESULT_DENIED;
 import static com.MAVLink.enums.MAV_RESULT.MAV_RESULT_FAILED;
 import static dji.common.mission.waypoint.WaypointMissionState.EXECUTING;
+import static dji.common.mission.waypoint.WaypointMissionState.EXECUTION_PAUSED;
 import static dji.common.mission.waypoint.WaypointMissionState.READY_TO_EXECUTE;
 
 
@@ -325,7 +326,6 @@ public class DroneManager {
 
     /**
      * Send a land command to the drone.
-     *
      * @return {@link MAV_RESULT#MAV_RESULT_ACCEPTED} if the drone accepts the command, otherwise if
      * it fails {@link MAV_RESULT#MAV_RESULT_FAILED} is returned.
      */
@@ -357,12 +357,36 @@ public class DroneManager {
     }
 
     /**
-     *
-     * @return
+     * Send a return to home command to the drone
+     * @return {@link MAV_RESULT#MAV_RESULT_ACCEPTED} if the drone accepts the command, otherwise if
+     * it fails {@link MAV_RESULT#MAV_RESULT_FAILED} is returned.
      */
     public int sendHome() {
+        if (mDrone == null) {
+            makeCallback(MAV_RESULT_FAILED);
+            return MAV_RESULT_FAILED;
+        }
 
+        FlightController flightController = mDrone.getFlightController();
+
+        if (flightController == null) {
+            makeCallback(MAV_RESULT_FAILED);
+            return MAV_RESULT_FAILED;
+        }
+
+
+        flightController.startGoHome(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError djiError) {
+                if (djiError != null) {
+                    makeCallback(MAV_RESULT_FAILED);
+                }
+            }
+        });
+
+        return MAV_RESULT_ACCEPTED;
     }
+
     //---------------------------------------------------------------------------------------
     //endregion
 
@@ -374,8 +398,9 @@ public class DroneManager {
      * be setup prior to calling this method.
      *
      * @return {@link MAV_RESULT#MAV_RESULT_ACCEPTED} if the mission starts successfully,
-     * {@link MAV_RESULT#MAV_RESULT_DENIED if the safety is still on}, and {@link MAV_RESULT#MAV_RESULT_FAILED}
-     * if either the mission fails or one of the prerequisites was not met.
+     * {@link MAV_RESULT#MAV_RESULT_DENIED}if the safety is still on or the drone is not in a
+     * {@link dji.common.mission.waypoint.WaypointMissionState#READY_TO_EXECUTE} state,
+     * and {@link MAV_RESULT#MAV_RESULT_FAILED} if either the command fails or one of the prerequisites was not met.
      */
     public int startWaypointMission() {
         if (mDrone == null) {
@@ -390,12 +415,8 @@ public class DroneManager {
             return MAV_RESULT_DENIED;
         }
 
-        if (waypointMissionOperator == null) {
-            return MAV_RESULT_FAILED;
-        }
-
         if (waypointMissionOperator.getCurrentState() != READY_TO_EXECUTE) {
-            return MAV_RESULT_FAILED;
+            return MAV_RESULT_DENIED;
         }
 
         waypointMissionOperator.startMission(new CommonCallbacks.CompletionCallback() {
@@ -411,10 +432,88 @@ public class DroneManager {
     }
 
     /**
-     * Stop a currently executing waypoint mission. Will fail if the connection to the drone has been lost.
+     * Resume a previously paused waypoint mission. Both the Drone and WaypointMissionOperator must
+     * be setup prior to calling this method as well as the Drone must be in the
+     * {@link dji.common.mission.waypoint.WaypointMissionState#EXECUTION_PAUSED} state.
      *
-     * @return {@link MAV_RESULT#MAV_RESULT_ACCEPTED} if the mission was stopped successfully, otherwise
-     * {@link MAV_RESULT#MAV_RESULT_FAILED}
+     * @return {@link MAV_RESULT#MAV_RESULT_ACCEPTED} if the mission resumes successfully,
+     * {@link MAV_RESULT#MAV_RESULT_DENIED} if the safety is still on or the drone is not in a
+     * {@link dji.common.mission.waypoint.WaypointMissionState#EXECUTION_PAUSED} state,
+     * and {@link MAV_RESULT#MAV_RESULT_FAILED} if either the command fails or one of the prerequisites was not met.
+     */
+    public int resumeWaypointMission() {
+        if (mDrone == null) {
+            return MAV_RESULT_FAILED;
+        }
+
+        if (waypointMissionOperator == null) {
+            return MAV_RESULT_FAILED;
+        }
+
+        if (mDrone.isSafetyEnabled()) {
+            return MAV_RESULT_DENIED;
+        }
+
+        if (waypointMissionOperator.getCurrentState() != EXECUTION_PAUSED) {
+            return MAV_RESULT_DENIED;
+        }
+
+        waypointMissionOperator.resumeMission(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError djiError) {
+                if (djiError == null) {
+                    makeCallback(MAV_RESULT_FAILED);
+                }
+            }
+        });
+
+        return MAV_RESULT_ACCEPTED;
+    }
+
+    /**
+     * Pauses the currently executing waypoint mission. Both the Drone and WaypointMissionOperator must
+     * be setup prior to calling this method as well as the Drone must be in the
+     * {@link dji.common.mission.waypoint.WaypointMissionState#EXECUTING} state.
+     *
+     * @return {@link MAV_RESULT#MAV_RESULT_ACCEPTED} if the mission pauses successfully,
+     * {@link MAV_RESULT#MAV_RESULT_DENIED} if the safety is still on or the drone is not in a
+     * {@link dji.common.mission.waypoint.WaypointMissionState#EXECUTING} state,
+     * and {@link MAV_RESULT#MAV_RESULT_FAILED} if either the command fails or one of the prerequisites was not met.
+     */
+    public int pauseWaypointMission() {
+        if (mDrone == null) {
+            return MAV_RESULT_FAILED;
+        }
+
+        if (waypointMissionOperator == null) {
+            return MAV_RESULT_FAILED;
+        }
+
+        if (waypointMissionOperator.getCurrentState() != EXECUTING) {
+            return MAV_RESULT_DENIED;
+        }
+
+        waypointMissionOperator.pauseMission(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError djiError) {
+                if (djiError == null) {
+                    makeCallback(MAV_RESULT_FAILED);
+                }
+            }
+        });
+
+        return MAV_RESULT_ACCEPTED;
+    }
+
+    /**
+     * Stops the currently executing waypoint mission. Both the Drone and WaypointMissionOperator must
+     * be setup prior to calling this method as well as the Drone must be in the
+     * {@link dji.common.mission.waypoint.WaypointMissionState#EXECUTING} state.
+     *
+     * @return {@link MAV_RESULT#MAV_RESULT_ACCEPTED} if the mission resumes successfully,
+     * {@link MAV_RESULT#MAV_RESULT_DENIED} if the safety is still on or the drone is not in a
+     * {@link dji.common.mission.waypoint.WaypointMissionState#EXECUTING} state,
+     * and {@link MAV_RESULT#MAV_RESULT_FAILED} if either the command fails or one of the prerequisites was not met.
      */
     public int stopWaypointMission() {
         if (mDrone == null) {
@@ -425,19 +524,20 @@ public class DroneManager {
             return MAV_RESULT_FAILED;
         }
 
-        if (waypointMissionOperator.getCurrentState() == EXECUTING) {
-            waypointMissionOperator.stopMission(new CommonCallbacks.CompletionCallback() {
-                @Override
-                public void onResult(DJIError djiError) {
-                    if (djiError == null) {
-                        makeCallback(MAV_RESULT_FAILED);
-                    }
-                }
-            });
-            return MAV_RESULT_ACCEPTED;
+        if (waypointMissionOperator.getCurrentState() != EXECUTING) {
+            return MAV_RESULT_DENIED;
         }
 
-        return MAV_RESULT_FAILED;
+        waypointMissionOperator.stopMission(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError djiError) {
+                if (djiError == null) {
+                    makeCallback(MAV_RESULT_FAILED);
+                }
+            }
+        });
+
+        return MAV_RESULT_ACCEPTED;
     }
 
     //---------------------------------------------------------------------------------------
