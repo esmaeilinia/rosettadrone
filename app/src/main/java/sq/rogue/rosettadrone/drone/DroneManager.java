@@ -340,11 +340,32 @@ public class DroneManager {
     }
 
     /**
-     *
-     * @return
+     * Stop a currently executing waypoint mission. Will fail if the connection to the drone has been lost.
+     * @return {@link MAV_RESULT#MAV_RESULT_ACCEPTED} if the mission was stopped successfully, otherwise
+     * {@link MAV_RESULT#MAV_RESULT_FAILED}
      */
     public int stopWaypointMission() {
+        if (mDrone == null) {
+            return MAV_RESULT_FAILED;
+        }
 
+        if (waypointMissionOperator == null) {
+            return MAV_RESULT_FAILED;
+        }
+
+        if (waypointMissionOperator.getCurrentState() == EXECUTING) {
+            waypointMissionOperator.stopMission(new CommonCallbacks.CompletionCallback() {
+                @Override
+                public void onResult(DJIError djiError) {
+                    if (djiError == null) {
+                        makeCallback(MAV_RESULT_FAILED);
+                    }
+                }
+            });
+            return MAV_RESULT_ACCEPTED;
+        }
+
+        return MAV_RESULT_FAILED;
     }
 
     //---------------------------------------------------------------------------------------
