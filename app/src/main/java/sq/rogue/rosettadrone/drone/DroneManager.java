@@ -2,7 +2,6 @@ package sq.rogue.rosettadrone.drone;
 
 import android.support.annotation.NonNull;
 
-import com.MAVLink.enums.MAV_CMD;
 import com.MAVLink.enums.MAV_RESULT;
 
 import java.util.Arrays;
@@ -11,7 +10,6 @@ import dji.common.airlink.SignalQualityCallback;
 import dji.common.battery.AggregationState;
 import dji.common.battery.BatteryState;
 import dji.common.error.DJIError;
-import dji.common.mission.waypoint.WaypointMissionState;
 import dji.common.product.Model;
 import dji.common.remotecontroller.HardwareState;
 import dji.common.util.CommonCallbacks;
@@ -26,8 +24,6 @@ import static com.MAVLink.enums.MAV_RESULT.MAV_RESULT_ACCEPTED;
 import static com.MAVLink.enums.MAV_RESULT.MAV_RESULT_DENIED;
 import static com.MAVLink.enums.MAV_RESULT.MAV_RESULT_FAILED;
 import static dji.common.mission.waypoint.WaypointMissionState.EXECUTING;
-import static dji.common.mission.waypoint.WaypointMissionState.EXECUTION_PAUSED;
-import static dji.common.mission.waypoint.WaypointMissionState.NOT_SUPPORTED;
 import static dji.common.mission.waypoint.WaypointMissionState.READY_TO_EXECUTE;
 
 
@@ -72,6 +68,7 @@ public class DroneManager {
     /**
      * Main bootstrapping method for setting up a drone. Calls and sets up all the requisite
      * parameters for the drone.
+     *
      * @param drone The Drone to setup.
      * @return true if the setup finished successfully, otherwise false.
      */
@@ -116,7 +113,6 @@ public class DroneManager {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @return
      */
     private boolean setCellVoltages() {
@@ -131,6 +127,7 @@ public class DroneManager {
 
     /**
      * Sets the callback for when RC state changes
+     *
      * @param callback The callback to be called whenever RC state changes. Should be null if you want
      *                 the default.
      * @return true if the callback is set successfully. If the callback can't be set it means the
@@ -167,6 +164,7 @@ public class DroneManager {
      * Sets the callback for battery state changes. The M600 uses an aggregation callback due to having
      * multiple batteries, and as a result passing a pre-defined callback when using the M600 is
      * NOT currently supported. Pass in null when using the M600.
+     *
      * @param callback The callback to be called whenever battery state changes. Should be null if
      *                 you want the default or are using the M600.
      * @return true if the callback is set successfully. If the callback can't be set it means the
@@ -218,10 +216,11 @@ public class DroneManager {
 
     /**
      * Sets the callbacks for when WiFi signal quality changes.
+     *
      * @param downlinkCallback The callback to be called when the downlink quality changes. Should be
      *                         null if the default is to be set.
-     * @param uplinkCallback The callback to be called when the uplink quality changes. Should be null
-     *                       if the default is to be set.
+     * @param uplinkCallback   The callback to be called when the uplink quality changes. Should be null
+     *                         if the default is to be set.
      * @return true if the callbacks are successfully set. false if either the airlink is null or the
      * drone has not be set prior to calling this method.
      */
@@ -273,12 +272,13 @@ public class DroneManager {
 
     /**
      * Sends a takeoff command to the drone while utilizing the callback interface if it is initialized.
+     *
      * @return {@link MAV_RESULT#MAV_RESULT_ACCEPTED} if the command is sent successfully,
      * {@link MAV_RESULT#MAV_RESULT_DENIED} if the safety is enabled, and {@link MAV_RESULT#MAV_RESULT_FAILED}
      * if the drone is not setup prior to the call, the flight controller is null, or the drone fails
      * to take the command.
      */
-    public int takeoff() {
+    public int sendTakeoff() {
         if (mDrone == null) {
             makeCallback(MAV_RESULT_FAILED);
             return MAV_RESULT_FAILED;
@@ -325,10 +325,11 @@ public class DroneManager {
 
     /**
      * Send a land command to the drone.
+     *
      * @return {@link MAV_RESULT#MAV_RESULT_ACCEPTED} if the drone accepts the command, otherwise if
      * it fails {@link MAV_RESULT#MAV_RESULT_FAILED} is returned.
      */
-    public int land() {
+    public int sendLand() {
         if (mDrone == null) {
             makeCallback(MAV_RESULT_FAILED);
             return MAV_RESULT_FAILED;
@@ -354,6 +355,14 @@ public class DroneManager {
 
         return MAV_RESULT_ACCEPTED;
     }
+
+    /**
+     *
+     * @return
+     */
+    public int sendHome() {
+
+    }
     //---------------------------------------------------------------------------------------
     //endregion
 
@@ -363,6 +372,7 @@ public class DroneManager {
     /**
      * Starts a previously uploaded waypoint mission. Both the Drone and WaypointMissionOperator must
      * be setup prior to calling this method.
+     *
      * @return {@link MAV_RESULT#MAV_RESULT_ACCEPTED} if the mission starts successfully,
      * {@link MAV_RESULT#MAV_RESULT_DENIED if the safety is still on}, and {@link MAV_RESULT#MAV_RESULT_FAILED}
      * if either the mission fails or one of the prerequisites was not met.
@@ -402,6 +412,7 @@ public class DroneManager {
 
     /**
      * Stop a currently executing waypoint mission. Will fail if the connection to the drone has been lost.
+     *
      * @return {@link MAV_RESULT#MAV_RESULT_ACCEPTED} if the mission was stopped successfully, otherwise
      * {@link MAV_RESULT#MAV_RESULT_FAILED}
      */
@@ -437,6 +448,7 @@ public class DroneManager {
 
     /**
      * Helper class to make a callback with the desired result code.
+     *
      * @param value A {@link MAV_RESULT} code.
      */
     private void makeCallback(int value) {
@@ -446,15 +458,9 @@ public class DroneManager {
     }
 
     /**
-     * The callback interface. Called whenever an operation relating to drone operation fails or succeeds.
-     */
-    public interface IDroneManager {
-        void onResult(int result);
-    }
-
-    /**
      * Hook into the callback interface. Only one hook can be acquired at a time. If multiple calls
      * are made only the most recent is sent a callback.
+     *
      * @param droneManagerCallback
      */
     public void setDroneManagerCallback(IDroneManager droneManagerCallback) {
@@ -466,6 +472,13 @@ public class DroneManager {
      */
     public void removeDroneManagerCallback() {
         this.mDroneManagerCallback = null;
+    }
+
+    /**
+     * The callback interface. Called whenever an operation relating to drone operation fails or succeeds.
+     */
+    public interface IDroneManager {
+        void onResult(int result);
     }
 
     //---------------------------------------------------------------------------------------
