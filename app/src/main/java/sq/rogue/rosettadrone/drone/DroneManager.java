@@ -58,13 +58,16 @@ public class DroneManager {
         mDroneManagerCallback = null;
 
         if (drone == null) {
-            setupDrone(new Drone());
+            initDrone(new Drone());
         }
-        setupDrone(drone);
+        initDrone(drone);
     }
 
     //---------------------------------------------------------------------------------------
     //endregion
+
+    //region init
+    //---------------------------------------------------------------------------------------
 
     /**
      * Main bootstrapping method for setting up a drone. Calls and sets up all the requisite
@@ -72,7 +75,7 @@ public class DroneManager {
      * @param drone The Drone to setup.
      * @return true if the setup finished successfully, otherwise false.
      */
-    private boolean setupDrone(Drone drone) {
+    private boolean initDrone(Drone drone) {
         mDrone = drone;
 
         if (!setCellVoltages()) {
@@ -90,6 +93,24 @@ public class DroneManager {
 
         return setLinkQualityCallbacks(null, null);
     }
+
+    /**
+     * Initialize the {@link WaypointMissionOperator} and attach a listener so we can execute
+     * waypoints.
+     */
+    private void initMissionOperator() {
+        waypointMissionOperator = MissionControl.getInstance().getWaypointMissionOperator();
+
+        if (waypointMissionOperator != null) {
+            waypointMissionOperator.removeListener(null);
+        }
+
+        waypointMissionOperator.addListener(new MissionOperatorListener());
+
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
 
     //region setup
     //---------------------------------------------------------------------------------------
@@ -247,14 +268,17 @@ public class DroneManager {
     //endregion
 
 
-    //region commands
+    //region commands to drone
     //---------------------------------------------------------------------------------------
 
     /**
-     *
-     * @return
+     * Sends a takeoff command to the drone while utilizing the callback interface if it is initialized.
+     * @return {@link MAV_RESULT#MAV_RESULT_ACCEPTED} if the command is sent successfully,
+     * {@link MAV_RESULT#MAV_RESULT_DENIED} if the safety is enabled, and {@link MAV_RESULT#MAV_RESULT_FAILED}
+     * if the drone is not setup prior to the call, the flight controller is null, or the drone fails
+     * to take the command.
      */
-    public int sendTakeoff() {
+    public int takeoff() {
         if (mDrone == null) {
             makeCallback(MAV_RESULT_FAILED);
             return MAV_RESULT_FAILED;
@@ -298,6 +322,43 @@ public class DroneManager {
         makeCallback(MAV_RESULT_ACCEPTED);
         return MAV_RESULT_ACCEPTED;
     }
+
+    /**
+     * Send a land command to the drone.
+     * @return {@link MAV_RESULT#MAV_RESULT_ACCEPTED} if the drone accepts the command, otherwise if
+     * it fails {@link MAV_RESULT#MAV_RESULT_FAILED} is returned.
+     */
+    public int land() {
+        if (mDrone == null) {
+            makeCallback(MAV_RESULT_FAILED);
+            return MAV_RESULT_FAILED;
+        }
+
+        FlightController flightController = mDrone.getFlightController();
+
+        if (flightController == null) {
+            makeCallback(MAV_RESULT_FAILED);
+            return MAV_RESULT_FAILED;
+        }
+
+        flightController.startLanding(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError djiError) {
+                if (djiError != null) {
+                    makeCallback(MAV_RESULT_FAILED);
+                } else {
+                    mDrone.setArmed(false);
+                }
+            }
+        });
+
+        return MAV_RESULT_ACCEPTED;
+    }
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region waypoints
+    //---------------------------------------------------------------------------------------
 
     /**
      * Starts a previously uploaded waypoint mission. Both the Drone and WaypointMissionOperator must
