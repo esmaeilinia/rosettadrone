@@ -943,7 +943,7 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
             return;
         }
         if (mSafetyEnabled) {
-            parent.logMessageDJI("You must turn off safety_layout to start mission");
+            parent.logMessageDJI("You must turn off the safety to start mission");
             return;
         }
 

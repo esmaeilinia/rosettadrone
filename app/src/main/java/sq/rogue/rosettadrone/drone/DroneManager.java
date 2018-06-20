@@ -10,11 +10,25 @@ import java.util.Arrays;
 import dji.common.airlink.SignalQualityCallback;
 import dji.common.battery.AggregationState;
 import dji.common.battery.BatteryState;
+import dji.common.error.DJIError;
+import dji.common.mission.waypoint.WaypointMissionState;
 import dji.common.product.Model;
 import dji.common.remotecontroller.HardwareState;
+import dji.common.util.CommonCallbacks;
 import dji.sdk.airlink.AirLink;
 import dji.sdk.battery.Battery;
+import dji.sdk.flightcontroller.FlightController;
+import dji.sdk.mission.MissionControl;
+import dji.sdk.mission.waypoint.WaypointMissionOperator;
 import dji.sdk.remotecontroller.RemoteController;
+
+import static com.MAVLink.enums.MAV_RESULT.MAV_RESULT_ACCEPTED;
+import static com.MAVLink.enums.MAV_RESULT.MAV_RESULT_DENIED;
+import static com.MAVLink.enums.MAV_RESULT.MAV_RESULT_FAILED;
+import static dji.common.mission.waypoint.WaypointMissionState.EXECUTING;
+import static dji.common.mission.waypoint.WaypointMissionState.EXECUTION_PAUSED;
+import static dji.common.mission.waypoint.WaypointMissionState.NOT_SUPPORTED;
+import static dji.common.mission.waypoint.WaypointMissionState.READY_TO_EXECUTE;
 
 
 /**
@@ -23,9 +37,14 @@ import dji.sdk.remotecontroller.RemoteController;
  */
 public class DroneManager {
     private Drone mDrone;
+    private WaypointMissionOperator waypointMissionOperator;
+
+    private IDroneManager mDroneManagerCallback;
 
     private int mUplinkQuality;
     private int mDownlinkQuality;
+
+    private int mGCSCommandedMode;
 
     //region constructors
     //---------------------------------------------------------------------------------------
@@ -33,6 +52,10 @@ public class DroneManager {
     public DroneManager(Drone drone) {
         mUplinkQuality = 0;
         mDownlinkQuality = 0;
+
+        mGCSCommandedMode = 0;
+
+        mDroneManagerCallback = null;
 
         if (drone == null) {
             setupDrone(new Drone());
@@ -227,12 +250,139 @@ public class DroneManager {
     //region commands
     //---------------------------------------------------------------------------------------
 
+    /**
+     *
+     * @return
+     */
     public int sendTakeoff() {
-        if (mDrone.isSafetyEnabled()) {
-            return MAV_RESULT.MAV_RESULT_DENIED;
+        if (mDrone == null) {
+            makeCallback(MAV_RESULT_FAILED);
+            return MAV_RESULT_FAILED;
         }
 
-        return MAV_RESULT.MAV_RESULT_ACCEPTED;
+        if (mDrone.isSafetyEnabled()) {
+            makeCallback(MAV_RESULT_DENIED);
+            return MAV_RESULT_DENIED;
+        }
+
+        if (waypointMissionOperator.getCurrentState() == READY_TO_EXECUTE) {
+            int waypointResult = startWaypointMission();
+            if (waypointResult == MAV_RESULT_FAILED || waypointResult == MAV_RESULT_DENIED) {
+                makeCallback(waypointResult);
+                return waypointResult;
+            }
+
+            makeCallback(MAV_RESULT_ACCEPTED);
+            return MAV_RESULT_ACCEPTED;
+        } else {
+            FlightController flightController = mDrone.getFlightController();
+
+            if (flightController == null) {
+                makeCallback(MAV_RESULT_FAILED);
+                return MAV_RESULT_FAILED;
+            }
+
+            flightController.startTakeoff(new CommonCallbacks.CompletionCallback() {
+                @Override
+                public void onResult(DJIError djiError) {
+                    if (djiError != null) {
+                        makeCallback(MAV_RESULT_FAILED);
+                    } else {
+                        makeCallback(MAV_RESULT_ACCEPTED);
+                        mGCSCommandedMode = -1;
+                    }
+                }
+            });
+        }
+
+        makeCallback(MAV_RESULT_ACCEPTED);
+        return MAV_RESULT_ACCEPTED;
+    }
+
+    /**
+     * Starts a previously uploaded waypoint mission. Both the Drone and WaypointMissionOperator must
+     * be setup prior to calling this method.
+     * @return {@link MAV_RESULT#MAV_RESULT_ACCEPTED} if the mission starts successfully,
+     * {@link MAV_RESULT#MAV_RESULT_DENIED if the safety is still on}, and {@link MAV_RESULT#MAV_RESULT_FAILED}
+     * if either the mission fails or one of the prerequisites was not met.
+     */
+    public int startWaypointMission() {
+        if (mDrone == null) {
+            return MAV_RESULT_FAILED;
+        }
+
+        if (waypointMissionOperator == null) {
+            return MAV_RESULT_FAILED;
+        }
+
+        if (mDrone.isSafetyEnabled()) {
+            return MAV_RESULT_DENIED;
+        }
+
+        if (waypointMissionOperator == null) {
+            return MAV_RESULT_FAILED;
+        }
+
+        if (waypointMissionOperator.getCurrentState() != READY_TO_EXECUTE) {
+            return MAV_RESULT_FAILED;
+        }
+
+        waypointMissionOperator.startMission(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError djiError) {
+                if (djiError == null) {
+                    makeCallback(MAV_RESULT_FAILED);
+                }
+            }
+        });
+
+        return MAV_RESULT_ACCEPTED;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public int stopWaypointMission() {
+
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region callback
+    //---------------------------------------------------------------------------------------
+
+    /**
+     *
+     * @param value
+     */
+    private void makeCallback(int value) {
+        if (mDroneManagerCallback != null) {
+            mDroneManagerCallback.onResult(value);
+        }
+    }
+
+    /**
+     *
+     */
+    public interface IDroneManager {
+        void onResult(int result);
+    }
+
+    /**
+     *
+     * @param droneManagerCallback
+     */
+    public void setDroneManagerCallback(IDroneManager droneManagerCallback) {
+        this.mDroneManagerCallback = droneManagerCallback;
+    }
+
+    /**
+     *
+     */
+    public void removeDroneManagerCallback() {
+        this.mDroneManagerCallback = null;
     }
 
     //---------------------------------------------------------------------------------------
