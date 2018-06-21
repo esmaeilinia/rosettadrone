@@ -1050,30 +1050,6 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
     public void onResult(DJIError djiError) {
 
     }
-
-    public void echoLoadedMission() {
-        getWaypointMissionOperator().downloadMission(
-                new CommonCallbacks.CompletionCallback() {
-                    @Override
-                    public void onResult(DJIError djiError) {
-                        if (djiError == null) {
-                            parent.logMessageDJI("Waypoint mission successfully downloaded");
-                        } else {
-                            parent.logMessageDJI("Error downloading: " + djiError.getDescription());
-                        }
-                    }
-                });
-        WaypointMission wm = getWaypointMissionOperator().getLoadedMission();
-        if (wm == null) {
-            parent.logMessageDJI("No mission loaded");
-            return;
-        }
-        parent.logMessageDJI("Waypoint count: " + wm.getWaypointCount());
-        for (Waypoint w : wm.getWaypointList())
-            parent.logMessageDJI(w.coordinate.toString());
-        parent.logMessageDJI("State: " + getWaypointMissionOperator().getCurrentState().getName());
-    }
-
     /********************************************
      * Parameter callbacks                      *
      ********************************************/

@@ -10,6 +10,7 @@ import dji.common.airlink.SignalQualityCallback;
 import dji.common.battery.AggregationState;
 import dji.common.battery.BatteryState;
 import dji.common.error.DJIError;
+import dji.common.mission.waypoint.WaypointMission;
 import dji.common.product.Model;
 import dji.common.remotecontroller.HardwareState;
 import dji.common.util.CommonCallbacks;
@@ -518,6 +519,35 @@ public class DroneManager {
         });
 
         return MAV_RESULT_ACCEPTED;
+    }
+
+    /**
+     * Get the {@link WaypointMission} that is currently loaded on the drone.
+     * @return The loaded {@link WaypointMission} if loaded, else null
+     */
+    public WaypointMission getLoadedWaypointMission() {
+        if (mDrone == null) {
+            return null;
+        }
+
+        if (waypointMissionOperator == null) {
+            return null;
+        }
+
+        waypointMissionOperator.downloadMission(djiError -> {
+            if (djiError != null) {
+                makeCallback(MAV_RESULT_FAILED);
+            }
+        });
+
+        WaypointMission waypointMission = waypointMissionOperator.getLoadedMission();
+
+        if (waypointMission == null) {
+            return null;
+        } else {
+            return waypointMission;
+        }
+
     }
 
     //---------------------------------------------------------------------------------------
