@@ -345,36 +345,6 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
         });
     }
 
-    private void sendMessage(MAVLinkMessage msg) {
-        if (socket == null)
-            return;
-
-        MAVLinkPacket packet = msg.pack();
-
-        packet.sysid = mSystemId;
-        packet.compid = mComponentId;
-
-        byte[] bytes = packet.encodePacket();
-
-        try {
-            DatagramPacket p = new DatagramPacket(bytes, bytes.length, socket.getInetAddress(), socket.getPort());
-            socket.send(p);
-            parent.logMessageToGCS(msg.toString());
-//            if(msg.msgid != MAVLINK_MSG_ID_POWER_STATUS &&
-//                    msg.msgid != MAVLINK_MSG_ID_SYS_STATUS &&
-//                    msg.msgid != MAVLINK_MSG_ID_VIBRATION &&
-//                    msg.msgid != MAVLINK_MSG_ID_ATTITUDE &&
-//                    msg.msgid != MAVLINK_MSG_ID_VFR_HUD &&
-//                    msg.msgid != MAVLINK_MSG_ID_GLOBAL_POSITION_INT &&
-//                    msg.msgid != MAVLINK_MSG_ID_GPS_RAW_INT &&
-//                    msg.msgid != MAVLINK_MSG_ID_RADIO_STATUS)
-//                parent.logMessageToGCS(msg.toString());
-
-        } catch (PortUnreachableException e) {
-        } catch (IOException e) {
-        }
-    }
-
     public void send_autopilot_version() {
         msg_autopilot_version msg = new msg_autopilot_version();
         msg.capabilities = MAV_PROTOCOL_CAPABILITY.MAV_PROTOCOL_CAPABILITY_COMMAND_INT;
@@ -483,26 +453,6 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
         sendMessage(msg);
     }
 
-    public void send_attitude() {
-        msg_attitude msg = new msg_attitude();
-        // TODO: this next line causes an exception
-        //msg.time_boot_ms = getTimestampMilliseconds();
-        Attitude att = djiAircraft.getFlightController().getState().getAttitude();
-        msg.roll = (float) (att.roll * Math.PI / 180);
-        msg.pitch = (float) (att.pitch * Math.PI / 180);
-        msg.yaw = (float) (att.yaw * Math.PI / 180);
-        // TODO msg.rollspeed = 0;
-        // TODO msg.pitchspeed = 0;
-        // TODO msg.yawspeed = 0;
-        sendMessage(msg);
-    }
-
-    public void send_altitude() {
-        msg_altitude msg = new msg_altitude();
-        LocationCoordinate3D coord = djiAircraft.getFlightController().getState().getAircraftLocation();
-        msg.altitude_relative = (int) (coord.getAltitude() * 1000);
-        sendMessage(msg);
-    }
 
     public void send_command_ack(int message_id, int result) {
         msg_command_ack msg = new msg_command_ack();
