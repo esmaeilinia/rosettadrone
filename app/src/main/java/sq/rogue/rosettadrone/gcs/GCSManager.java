@@ -4,8 +4,13 @@ import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.common.msg_altitude;
 import com.MAVLink.common.msg_attitude;
+import com.MAVLink.common.msg_battery_status;
 import com.MAVLink.common.msg_command_ack;
 import com.MAVLink.common.msg_heartbeat;
+import com.MAVLink.common.msg_power_status;
+import com.MAVLink.common.msg_radio_status;
+import com.MAVLink.common.msg_statustext;
+import com.MAVLink.common.msg_sys_status;
 import com.MAVLink.enums.MAV_AUTOPILOT;
 import com.MAVLink.enums.MAV_MODE_FLAG;
 import com.MAVLink.enums.MAV_RESULT;
@@ -104,6 +109,96 @@ public class GCSManager {
     //---------------------------------------------------------------------------------------
     //endregion
 
+    //region status messages
+    //---------------------------------------------------------------------------------------
+
+    /**
+     *
+     * @param drone
+     */
+    public void sendSystemStatus(Drone drone) {
+        if (drone == null) {
+            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
+            return;
+        }
+
+
+        msg_sys_status sysStatusMessage = new msg_sys_status();
+
+        if (drone.getCapacity() > 0) {
+            sysStatusMessage.battery_remaining = (byte) ((float) drone.getChargeRemaining() / (float) drone.getCapacity() * 100.0);
+        } else {
+            sysStatusMessage.battery_remaining = 100;
+        }
+
+        sysStatusMessage.voltage_battery = drone.getVoltage();
+        sysStatusMessage.current_battery = (short) drone.getCurrent();
+
+        sendMessage(sysStatusMessage);
+
+        makeCallback(MAV_RESULT.MAV_RESULT_ACCEPTED);
+    }
+
+    /**
+     *
+     */
+    public void sendPowerStatus(Drone drone) {
+        if (drone == null) {
+            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
+            return;
+        }
+
+        msg_battery_status batteryStatusMessage = new msg_battery_status();
+
+        batteryStatusMessage.current_consumed = drone.getCapacity() - drone.getChargeRemaining();
+        batteryStatusMessage.voltages = drone.getCellVoltages();
+        batteryStatusMessage.temperature = (short) (drone.getTemp() * 100);
+        batteryStatusMessage.current_battery = (short) (drone.getCurrent() * 10);
+
+        sendMessage(batteryStatusMessage);
+
+        makeCallback(MAV_RESULT.MAV_RESULT_ACCEPTED);
+    }
+
+    /**
+     *
+     */
+    public void sendBatteryStatus() {
+        msg_power_status powerStatusMessage = new msg_power_status();
+
+        sendMessage(powerStatusMessage);
+
+        makeCallback(MAV_RESULT.MAV_RESULT_ACCEPTED);
+    }
+
+    public void sendRadioStatus() {
+        msg_radio_status radioStatusMessage = new msg_radio_status();
+
+        radioStatusMessage.rssi = 0; // TODO: work out units conversion (see issue #1)
+        radioStatusMessage.remrssi = 0; // TODO: work out units conversion (see issue #1)
+
+        sendMessage(radioStatusMessage);
+
+        makeCallback(MAV_RESULT.MAV_RESULT_ACCEPTED);
+    }
+
+    /**
+     *
+     */
+    public void sendStatusText(String text, int severity) {
+        msg_statustext statusTextMessage = new msg_statustext();
+
+        statusTextMessage.text = text.getBytes();
+        statusTextMessage.severity = (short) severity;
+
+        sendMessage(statusTextMessage);
+
+        makeCallback(MAV_RESULT.MAV_RESULT_ACCEPTED);
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
     public void sendHeartbeat(Drone drone) {
         if (drone == null) {
         //todo
@@ -131,7 +226,7 @@ public class GCSManager {
 
     }
 
-    public void sendBatteryStatus() {
+    public void sendVibration() {
 
     }
 
