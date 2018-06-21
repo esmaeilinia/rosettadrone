@@ -7,14 +7,12 @@ package sq.rogue.rosettadrone;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.hardware.usb.UsbManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -28,7 +26,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
-import android.support.v7.widget.SwitchCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -37,45 +34,25 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.Toast;
 
-import com.MAVLink.MAVLinkPacket;
-import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.Parser;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.lang.ref.WeakReference;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
 
-import dji.common.error.DJIError;
-import dji.common.error.DJISDKError;
-import dji.sdk.base.BaseComponent;
 import dji.sdk.base.BaseProduct;
-import dji.sdk.products.Aircraft;
 import dji.sdk.sdkmanager.DJISDKManager;
 import sq.rogue.rosettadrone.logs.LogFragment;
 import sq.rogue.rosettadrone.settings.SettingsActivity;
 import sq.rogue.rosettadrone.video.VideoService;
 
 import static android.support.design.widget.Snackbar.LENGTH_LONG;
-import static sq.rogue.rosettadrone.util.safeSleep;
 import static sq.rogue.rosettadrone.video.VideoService.ACTION_DRONE_CONNECTED;
 import static sq.rogue.rosettadrone.video.VideoService.ACTION_DRONE_DISCONNECTED;
 import static sq.rogue.rosettadrone.video.VideoService.ACTION_RESTART;
@@ -615,7 +592,7 @@ public class MainActivity extends AppCompatActivity {
                 Float paramValue = Float.valueOf(paramData[3]);
                 short paramType = Short.valueOf(paramData[4]);
 
-                mModel.getParams().add(new MAVParam(paramName, paramValue, paramType));
+                mModel.getParams().add(new MAVParameter(paramName, paramValue, paramType));
             }
         } catch (IOException e) {
             Log.d(TAG, "exception", e);

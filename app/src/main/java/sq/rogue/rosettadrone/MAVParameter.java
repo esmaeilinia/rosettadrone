@@ -1,16 +1,12 @@
 package sq.rogue.rosettadrone;
 
-/**
- * Created by markjacobsen on 11/12/17.
- */
-
-public class MAVParam {
+public class MAVParameter {
 
     private String paramName;
     private Float paramValue;
     private short paramType;
 
-    MAVParam(String paramName, float paramValue, short paramType) {
+    MAVParameter(String paramName, float paramValue, short paramType) {
         this.paramName = paramName;
         this.paramValue = paramValue;
         this.paramType = paramType;

@@ -164,7 +164,7 @@ public class MAVLinkReceiver {
 
             case MAVLINK_MSG_ID_PARAM_SET:
                 msg_param_set msg_param2 = (msg_param_set) msg;
-                MAVParam param = new MAVParam(msg_param2.getParam_Id(),
+                MAVParameter param = new MAVParameter(msg_param2.getParam_Id(),
                         msg_param2.param_value,
                         msg_param2.param_type);
                 mModel.changeParam(param);

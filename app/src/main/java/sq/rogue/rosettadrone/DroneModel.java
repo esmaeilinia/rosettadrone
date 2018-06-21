@@ -82,7 +82,7 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
     private static final int NOT_USING_GCS_COMMANDED_MODE = -1;
     private final String TAG = "RosettaDrone";
     private Aircraft djiAircraft;
-    private ArrayList<MAVParam> params = new ArrayList<MAVParam>();
+    private ArrayList<MAVParameter> params = new ArrayList<MAVParameter>();
     private DatagramSocket socket;
     private long ticks = 0;
     private MainActivity parent;
@@ -257,7 +257,7 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
         getWaypointMissionOperator().addListener(mMissionOperatorListener);
     }
 
-    public ArrayList<MAVParam> getParams() {
+    public ArrayList<MAVParameter> getParams() {
         return params;
     }
 
@@ -694,7 +694,7 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
     }
 
     public void send_param(int index) {
-        MAVParam param = params.get(index);
+        MAVParameter param = params.get(index);
         send_param(param.getParamName(),
                 param.getParamValue(),
                 param.getParamType(),
@@ -788,7 +788,7 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
         return true;
     }
 
-    public void changeParam(MAVParam param) {
+    public void changeParam(MAVParameter param) {
         for (int i = 0; i < getParams().size(); i++) {
             if (getParams().get(i).getParamName().equals(param.getParamName())) {
                 getParams().get(i).setParamValue(param.getParamValue());
@@ -1020,63 +1020,6 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
             });
         }
     }
-
-    public void do_takeoff() {
-        if (mSafetyEnabled) {
-            parent.logMessageDJI("You must turn off the safety to takeoff");
-            send_command_ack(MAV_CMD_NAV_TAKEOFF, MAV_RESULT.MAV_RESULT_DENIED);
-            return;
-        }
-
-        if (getWaypointMissionOperator().getCurrentState() == WaypointMissionState.READY_TO_EXECUTE) {
-            startWaypointMission();
-            send_command_ack(MAV_CMD_NAV_TAKEOFF, MAV_RESULT.MAV_RESULT_ACCEPTED);
-        } else {
-            parent.logMessageDJI("Initiating takeoff");
-            djiAircraft.getFlightController().startTakeoff(new CommonCallbacks.CompletionCallback() {
-                @Override
-                public void onResult(DJIError djiError) {
-                    if (djiError != null) {
-                        parent.logMessageDJI("Error: " + djiError.toString());
-                        send_command_ack(MAV_CMD_NAV_TAKEOFF, MAV_RESULT.MAV_RESULT_FAILED);
-                    } else {
-                        parent.logMessageDJI("Takeoff successful!\n");
-                        send_command_ack(MAV_CMD_NAV_TAKEOFF, MAV_RESULT.MAV_RESULT_ACCEPTED);
-                    }
-                    mGCSCommandedMode = NOT_USING_GCS_COMMANDED_MODE;
-                }
-            });
-        }
-    }
-
-    public void do_land() {
-        parent.logMessageDJI("Initiating landing");
-        djiAircraft.getFlightController().startLanding(new CommonCallbacks.CompletionCallback() {
-            @Override
-            public void onResult(DJIError djiError) {
-                if (djiError != null)
-                    parent.logMessageDJI("Error: " + djiError.toString());
-                else {
-                    parent.logMessageDJI("Landing successful!\n");
-                    mMotorsArmed = false;
-                }
-            }
-        });
-    }
-
-    public void do_go_home() {
-        parent.logMessageDJI("Initiating Go Home");
-        djiAircraft.getFlightController().startGoHome(new CommonCallbacks.CompletionCallback() {
-            @Override
-            public void onResult(DJIError djiError) {
-                if (djiError != null)
-                    parent.logMessageDJI("Error: " + djiError.toString());
-                else
-                    parent.logMessageDJI("Go home successful!\n");
-            }
-        });
-    }
-
     public void set_flight_mode(FlightControlState djiMode) {
         // TODO
         return;

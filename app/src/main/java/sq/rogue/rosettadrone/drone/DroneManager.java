@@ -58,6 +58,7 @@ public class DroneManager {
             initDrone(new Drone());
         }
         initDrone(drone);
+        initMissionOperator();
     }
 
     //---------------------------------------------------------------------------------------
@@ -307,15 +308,12 @@ public class DroneManager {
                 return MAV_RESULT_FAILED;
             }
 
-            flightController.startTakeoff(new CommonCallbacks.CompletionCallback() {
-                @Override
-                public void onResult(DJIError djiError) {
-                    if (djiError != null) {
-                        makeCallback(MAV_RESULT_FAILED);
-                    } else {
-                        makeCallback(MAV_RESULT_ACCEPTED);
-                        mGCSCommandedMode = -1;
-                    }
+            flightController.startTakeoff(djiError -> {
+                if (djiError != null) {
+                    makeCallback(MAV_RESULT_FAILED);
+                } else {
+                    makeCallback(MAV_RESULT_ACCEPTED);
+                    mGCSCommandedMode = -1;
                 }
             });
         }
@@ -342,14 +340,11 @@ public class DroneManager {
             return MAV_RESULT_FAILED;
         }
 
-        flightController.startLanding(new CommonCallbacks.CompletionCallback() {
-            @Override
-            public void onResult(DJIError djiError) {
-                if (djiError != null) {
-                    makeCallback(MAV_RESULT_FAILED);
-                } else {
-                    mDrone.setArmed(false);
-                }
+        flightController.startLanding(djiError -> {
+            if (djiError != null) {
+                makeCallback(MAV_RESULT_FAILED);
+            } else {
+                mDrone.setArmed(false);
             }
         });
 
@@ -375,12 +370,9 @@ public class DroneManager {
         }
 
 
-        flightController.startGoHome(new CommonCallbacks.CompletionCallback() {
-            @Override
-            public void onResult(DJIError djiError) {
-                if (djiError != null) {
-                    makeCallback(MAV_RESULT_FAILED);
-                }
+        flightController.startGoHome(djiError -> {
+            if (djiError != null) {
+                makeCallback(MAV_RESULT_FAILED);
             }
         });
 
@@ -419,12 +411,9 @@ public class DroneManager {
             return MAV_RESULT_DENIED;
         }
 
-        waypointMissionOperator.startMission(new CommonCallbacks.CompletionCallback() {
-            @Override
-            public void onResult(DJIError djiError) {
-                if (djiError == null) {
-                    makeCallback(MAV_RESULT_FAILED);
-                }
+        waypointMissionOperator.startMission(djiError -> {
+            if (djiError == null) {
+                makeCallback(MAV_RESULT_FAILED);
             }
         });
 
@@ -458,12 +447,9 @@ public class DroneManager {
             return MAV_RESULT_DENIED;
         }
 
-        waypointMissionOperator.resumeMission(new CommonCallbacks.CompletionCallback() {
-            @Override
-            public void onResult(DJIError djiError) {
-                if (djiError == null) {
-                    makeCallback(MAV_RESULT_FAILED);
-                }
+        waypointMissionOperator.resumeMission(djiError -> {
+            if (djiError == null) {
+                makeCallback(MAV_RESULT_FAILED);
             }
         });
 
@@ -493,12 +479,9 @@ public class DroneManager {
             return MAV_RESULT_DENIED;
         }
 
-        waypointMissionOperator.pauseMission(new CommonCallbacks.CompletionCallback() {
-            @Override
-            public void onResult(DJIError djiError) {
-                if (djiError == null) {
-                    makeCallback(MAV_RESULT_FAILED);
-                }
+        waypointMissionOperator.pauseMission(djiError -> {
+            if (djiError == null) {
+                makeCallback(MAV_RESULT_FAILED);
             }
         });
 
@@ -528,12 +511,9 @@ public class DroneManager {
             return MAV_RESULT_DENIED;
         }
 
-        waypointMissionOperator.stopMission(new CommonCallbacks.CompletionCallback() {
-            @Override
-            public void onResult(DJIError djiError) {
-                if (djiError == null) {
-                    makeCallback(MAV_RESULT_FAILED);
-                }
+        waypointMissionOperator.stopMission(djiError -> {
+            if (djiError == null) {
+                makeCallback(MAV_RESULT_FAILED);
             }
         });
 
