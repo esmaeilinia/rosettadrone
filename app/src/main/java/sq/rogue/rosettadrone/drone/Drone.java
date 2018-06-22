@@ -10,6 +10,8 @@ public class Drone extends Aircraft {
 
     private int mThrottle;
 
+    private int mGCSCommandedMode;
+
     //Voltage in mV
     private int mVoltage;
 
@@ -30,10 +32,14 @@ public class Drone extends Aircraft {
     //region constructors
     //---------------------------------------------------------------------------------------
 
+    /**
+     *
+     */
     public Drone() {
         mSafetyEnabled = true;
         mArmed = false;
 
+        mGCSCommandedMode = 0;
         mThrottle = 0;
 
         mTemp = 0;
@@ -51,10 +57,18 @@ public class Drone extends Aircraft {
     //region safety
     //---------------------------------------------------------------------------------------
 
+    /**
+     *
+     * @return
+     */
     public boolean isSafetyEnabled() {
         return mSafetyEnabled;
     }
 
+    /**
+     *
+     * @param safetyEnabled
+     */
     public void setSafetyEnabled(boolean safetyEnabled) {
         this.mSafetyEnabled = safetyEnabled;
     }
@@ -65,24 +79,63 @@ public class Drone extends Aircraft {
     //region arming
     //---------------------------------------------------------------------------------------
 
+    /**
+     *
+     * @return
+     */
     public boolean isArmed() {
         return mArmed;
     }
 
+    /**
+     *
+     * @param armed
+     */
     public void setArmed(boolean armed) {
-        this.mArmed = armed;
+        this.mArmed = mArmed;
     }
 
     //---------------------------------------------------------------------------------------
     //endregion
 
+    //region commanded mode
+    //---------------------------------------------------------------------------------------
+
+    /**
+     *
+     * @return
+     */
+    public int getCommandedMode() {
+        return mGCSCommandedMode;
+    }
+
+    /**
+     *
+     * @param mode
+     */
+    public void setmGCSCommandedMode(int mode) {
+        mGCSCommandedMode = mode;
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+
     //region throttle
     //---------------------------------------------------------------------------------------
 
+    /**
+     *
+     * @return
+     */
     public int getThrottle() {
         return mThrottle;
     }
 
+    /**
+     *
+     * @param throttle
+     */
     public void setThrottle(int throttle) {
         this.mThrottle = throttle;
     }
@@ -93,10 +146,18 @@ public class Drone extends Aircraft {
     //region temp
     //---------------------------------------------------------------------------------------
 
+    /**
+     *
+     * @return
+     */
     public float getTemp() {
         return mTemp;
     }
 
+    /**
+     *
+     * @param temp
+     */
     public void setTemp(float temp) {
         this.mTemp = temp;
     }
@@ -107,10 +168,18 @@ public class Drone extends Aircraft {
     //region capacity
     //---------------------------------------------------------------------------------------
 
+    /**
+     *
+     * @return
+     */
     public int getCapacity() {
         return mCapacity;
     }
 
+    /**
+     *
+     * @param capacity
+     */
     public void setCapacity(int capacity) {
         this.mCapacity = capacity;
     }
@@ -121,10 +190,18 @@ public class Drone extends Aircraft {
     //region charge
     //---------------------------------------------------------------------------------------
 
+    /**
+     *
+     * @return
+     */
     public int getChargeRemaining() {
         return mChargeRemaining;
     }
 
+    /**
+     *
+     * @param chargeRemaining
+     */
     public void setChargeRemaining(int chargeRemaining) {
         this.mChargeRemaining = chargeRemaining;
     }
@@ -135,10 +212,18 @@ public class Drone extends Aircraft {
     //region current
     //---------------------------------------------------------------------------------------
 
+    /**
+     *
+     * @return
+     */
     public int getCurrent() {
         return mCurrent;
     }
 
+    /**
+     *
+     * @param current
+     */
     public void setCurrent(int current) {
         this.mCurrent = current;
     }
@@ -149,10 +234,18 @@ public class Drone extends Aircraft {
     //region voltage
     //---------------------------------------------------------------------------------------
 
+    /**
+     *
+     * @return
+     */
     public int getVoltage() {
         return mVoltage;
     }
 
+    /**
+     *
+     * @param voltage
+     */
     public void setVoltage(int voltage) {
         this.mVoltage = voltage;
     }
@@ -163,10 +256,18 @@ public class Drone extends Aircraft {
     //region cell voltages
     //---------------------------------------------------------------------------------------
 
+    /**
+     *
+     * @return
+     */
     public int[] getCellVoltages() {
         return mCellVoltages;
     }
 
+    /**
+     *
+     * @param cellVoltages
+     */
     public void setCellVoltages(int[] cellVoltages) {
         this.mCellVoltages = cellVoltages;
     }

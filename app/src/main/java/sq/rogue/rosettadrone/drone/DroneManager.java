@@ -42,8 +42,6 @@ public class DroneManager {
     private int mUplinkQuality;
     private int mDownlinkQuality;
 
-    private int mGCSCommandedMode;
-
     //region constructors
     //---------------------------------------------------------------------------------------
 

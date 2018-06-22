@@ -351,116 +351,6 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
         msg.capabilities |= MAV_PROTOCOL_CAPABILITY.MAV_PROTOCOL_CAPABILITY_MISSION_INT;
         sendMessage(msg);
     }
-
-    public void send_heartbeat() {
-        msg_heartbeat msg = new msg_heartbeat();
-        msg.type = MAV_TYPE.MAV_TYPE_QUADROTOR;
-        msg.autopilot = MAV_AUTOPILOT.MAV_AUTOPILOT_ARDUPILOTMEGA;
-
-        // For base mode logic, see Copter::sendHeartBeat() in ArduCopter/GCS_Mavlink.cpp
-        msg.base_mode = MAV_MODE_FLAG.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
-        msg.base_mode |= MAV_MODE_FLAG.MAV_MODE_FLAG_MANUAL_INPUT_ENABLED;
-
-        switch (djiAircraft.getFlightController().getState().getFlightMode()) {
-            case MANUAL:
-                msg.custom_mode = ArduCopterFlightModes.STABILIZE;
-                break;
-            case ATTI:
-                msg.custom_mode = ArduCopterFlightModes.LOITER;
-                break;
-            case ATTI_COURSE_LOCK:
-                break;
-            case GPS_ATTI:
-                break;
-            case GPS_COURSE_LOCK:
-                break;
-            case GPS_HOME_LOCK:
-                break;
-            case GPS_HOT_POINT:
-                break;
-            case ASSISTED_TAKEOFF:
-                break;
-            case AUTO_TAKEOFF:
-                msg.custom_mode = ArduCopterFlightModes.GUIDED;
-                msg.base_mode |= MAV_MODE_FLAG.MAV_MODE_FLAG_GUIDED_ENABLED;
-                break;
-            case AUTO_LANDING:
-                msg.custom_mode = ArduCopterFlightModes.LAND;
-                msg.base_mode |= MAV_MODE_FLAG.MAV_MODE_FLAG_GUIDED_ENABLED;
-                break;
-            case GPS_WAYPOINT:
-                msg.custom_mode = ArduCopterFlightModes.AUTO;
-                msg.base_mode |= MAV_MODE_FLAG.MAV_MODE_FLAG_GUIDED_ENABLED;
-                break;
-            case GO_HOME:
-                msg.custom_mode = ArduCopterFlightModes.RTL;
-                msg.base_mode |= MAV_MODE_FLAG.MAV_MODE_FLAG_GUIDED_ENABLED;
-                break;
-            case JOYSTICK:
-                break;
-            case GPS_ATTI_WRISTBAND:
-                break;
-            case DRAW:
-                msg.base_mode |= MAV_MODE_FLAG.MAV_MODE_FLAG_GUIDED_ENABLED;
-                break;
-            case GPS_FOLLOW_ME:
-                msg.custom_mode = ArduCopterFlightModes.GUIDED;
-                msg.base_mode |= MAV_MODE_FLAG.MAV_MODE_FLAG_GUIDED_ENABLED;
-                break;
-            case ACTIVE_TRACK:
-                msg.custom_mode = ArduCopterFlightModes.GUIDED;
-                msg.base_mode |= MAV_MODE_FLAG.MAV_MODE_FLAG_GUIDED_ENABLED;
-                break;
-            case TAP_FLY:
-                msg.custom_mode = ArduCopterFlightModes.GUIDED;
-                break;
-            case GPS_SPORT:
-                break;
-            case GPS_NOVICE:
-                break;
-            case UNKNOWN:
-                break;
-            case CONFIRM_LANDING:
-                break;
-            case TERRAIN_FOLLOW:
-                break;
-            case TRIPOD:
-                break;
-            case TRACK_SPOTLIGHT:
-                break;
-            case MOTORS_JUST_STARTED:
-                break;
-        }
-        if (mGCSCommandedMode == ArduCopterFlightModes.GUIDED)
-            msg.custom_mode = ArduCopterFlightModes.GUIDED;
-        if (mGCSCommandedMode == ArduCopterFlightModes.BRAKE)
-            msg.custom_mode = ArduCopterFlightModes.BRAKE;
-
-        if (mMotorsArmed)
-            msg.base_mode |= MAV_MODE_FLAG.MAV_MODE_FLAG_SAFETY_ARMED;
-
-        // Catches manual landings
-        // Automatically disarm motors if aircraft is on the ground and a takeoff is not in progress
-        if (!getDjiAircraft().getFlightController().getState().isFlying() && mGCSCommandedMode != ArduCopterFlightModes.GUIDED)
-            mMotorsArmed = false;
-
-        // Catches manual takeoffs
-        if (getDjiAircraft().getFlightController().getState().areMotorsOn())
-            mMotorsArmed = true;
-
-        msg.system_status = MAV_STATE.MAV_STATE_ACTIVE;
-        msg.mavlink_version = 3;
-        sendMessage(msg);
-    }
-
-
-    public void send_command_ack(int message_id, int result) {
-        msg_command_ack msg = new msg_command_ack();
-        msg.command = message_id;
-        msg.result = (short) result;
-        sendMessage(msg);
-    }
-
     public void send_global_position_int() {
         msg_global_position_int msg = new msg_global_position_int();
 
@@ -531,60 +421,6 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
         sendMessage(msg);
     }
 
-    public void send_sys_status() {
-        msg_sys_status msg = new msg_sys_status();
-
-        Log.d(TAG, "Full charge capacity: " + String.valueOf(mFullChargeCapacity_mAh));
-        Log.d(TAG, "Charge remaining: " + String.valueOf(mChargeRemaining_mAh));
-        Log.d(TAG, "Full charge capacity: " + String.valueOf(mFullChargeCapacity_mAh));
-
-        if (mFullChargeCapacity_mAh > 0) {
-            msg.battery_remaining = (byte) ((float) mChargeRemaining_mAh / (float) mFullChargeCapacity_mAh * 100.0);
-            Log.d(TAG, "calc'ed bat remain: " + String.valueOf(msg.battery_remaining));
-        } else {
-            Log.d(TAG, "divide by zero");
-            msg.battery_remaining = 100; // Prevent divide by zero
-        }
-        msg.voltage_battery = mVoltage_mV;
-        msg.current_battery = (short) mCurrent_mA;
-        sendMessage(msg);
-    }
-
-    public void send_power_status() {
-        msg_power_status msg = new msg_power_status();
-        sendMessage(msg);
-    }
-
-    public void send_radio_status() {
-        msg_radio_status msg = new msg_radio_status();
-        msg.rssi = 0; // TODO: work out units conversion (see issue #1)
-        msg.remrssi = 0; // TODO: work out units conversion (see issue #1)
-        sendMessage(msg);
-    }
-
-    public void send_rc_channels() {
-        msg_rc_channels msg = new msg_rc_channels();
-        msg.rssi = (short) mUplinkQuality;
-        sendMessage(msg);
-    }
-
-    public void send_vibration() {
-        msg_vibration msg = new msg_vibration();
-        sendMessage(msg);
-    }
-
-    public void send_battery_status() {
-        msg_battery_status msg = new msg_battery_status();
-        msg.current_consumed = mFullChargeCapacity_mAh - mChargeRemaining_mAh;
-        msg.voltages = mCellVoltages;
-        msg.temperature = (short) (mBatteryTemp_C * 100);
-        msg.current_battery = (short) (mCurrent_mA * 10);
-        Log.d(TAG, "temp: " + String.valueOf(mBatteryTemp_C));
-        Log.d(TAG, "send_battery_status() complete");
-        // TODO cell voltages
-        sendMessage(msg);
-    }
-
     public void send_vfr_hud() {
         msg_vfr_hud msg = new msg_vfr_hud();
 
@@ -617,29 +453,6 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
         // DJI: m/s, positive values down
         msg.climb = -(short) (djiAircraft.getFlightController().getState().getVelocityZ());
 
-        sendMessage(msg);
-    }
-
-    public void send_home_position() {
-        msg_home_position msg = new msg_home_position();
-
-        msg.latitude = (int) (djiAircraft.getFlightController().getState().getHomeLocation().getLatitude() * Math.pow(10, 7));
-        msg.longitude = (int) (djiAircraft.getFlightController().getState().getHomeLocation().getLongitude() * Math.pow(10, 7));
-        msg.altitude = (int) (djiAircraft.getFlightController().getState().getHomePointAltitude());
-
-        // msg.x = 0;
-        // msg.y = 0;
-        // msg.z = 0;
-        // msg.approach_x = 0;
-        // msg.approach_y = 0;
-        // msg.approach_z = 0;
-        sendMessage(msg);
-    }
-
-    public void send_statustext(String text, int severity) {
-        msg_statustext msg = new msg_statustext();
-        msg.text = text.getBytes();
-        msg.severity = (short) severity;
         sendMessage(msg);
     }
 
