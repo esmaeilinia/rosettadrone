@@ -58,7 +58,6 @@ public class Drone extends Aircraft {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @return
      */
     public boolean isSafetyEnabled() {
@@ -66,7 +65,6 @@ public class Drone extends Aircraft {
     }
 
     /**
-     *
      * @param safetyEnabled
      */
     public void setSafetyEnabled(boolean safetyEnabled) {
@@ -80,7 +78,6 @@ public class Drone extends Aircraft {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @return
      */
     public boolean isArmed() {
@@ -88,7 +85,6 @@ public class Drone extends Aircraft {
     }
 
     /**
-     *
      * @param armed
      */
     public void setArmed(boolean armed) {
@@ -102,7 +98,6 @@ public class Drone extends Aircraft {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @return
      */
     public int getCommandedMode() {
@@ -110,7 +105,6 @@ public class Drone extends Aircraft {
     }
 
     /**
-     *
      * @param mode
      */
     public void setGCSCommandedMode(int mode) {
@@ -125,7 +119,6 @@ public class Drone extends Aircraft {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @return
      */
     public int getThrottle() {
@@ -133,7 +126,6 @@ public class Drone extends Aircraft {
     }
 
     /**
-     *
      * @param throttle
      */
     public void setThrottle(int throttle) {
@@ -147,7 +139,6 @@ public class Drone extends Aircraft {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @return
      */
     public float getTemp() {
@@ -155,7 +146,6 @@ public class Drone extends Aircraft {
     }
 
     /**
-     *
      * @param temp
      */
     public void setTemp(float temp) {
@@ -169,7 +159,6 @@ public class Drone extends Aircraft {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @return
      */
     public int getCapacity() {
@@ -177,7 +166,6 @@ public class Drone extends Aircraft {
     }
 
     /**
-     *
      * @param capacity
      */
     public void setCapacity(int capacity) {
@@ -191,7 +179,6 @@ public class Drone extends Aircraft {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @return
      */
     public int getChargeRemaining() {
@@ -199,7 +186,6 @@ public class Drone extends Aircraft {
     }
 
     /**
-     *
      * @param chargeRemaining
      */
     public void setChargeRemaining(int chargeRemaining) {
@@ -213,7 +199,6 @@ public class Drone extends Aircraft {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @return
      */
     public int getCurrent() {
@@ -221,7 +206,6 @@ public class Drone extends Aircraft {
     }
 
     /**
-     *
      * @param current
      */
     public void setCurrent(int current) {
@@ -235,7 +219,6 @@ public class Drone extends Aircraft {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @return
      */
     public int getVoltage() {
@@ -243,7 +226,6 @@ public class Drone extends Aircraft {
     }
 
     /**
-     *
      * @param voltage
      */
     public void setVoltage(int voltage) {
@@ -257,7 +239,6 @@ public class Drone extends Aircraft {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @return
      */
     public int[] getCellVoltages() {
@@ -265,7 +246,6 @@ public class Drone extends Aircraft {
     }
 
     /**
-     *
      * @param cellVoltages
      */
     public void setCellVoltages(int[] cellVoltages) {

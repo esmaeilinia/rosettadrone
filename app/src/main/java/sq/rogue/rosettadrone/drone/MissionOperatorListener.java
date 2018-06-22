@@ -10,11 +10,11 @@ import dji.common.mission.waypoint.WaypointMissionDownloadEvent;
 import dji.common.mission.waypoint.WaypointMissionExecutionEvent;
 import dji.common.mission.waypoint.WaypointMissionUploadEvent;
 import dji.sdk.mission.waypoint.WaypointMissionOperatorListener;
-import sq.rogue.rosettadrone.MainActivity;
 
 class MissionOperatorListener implements WaypointMissionOperatorListener {
     private String TAG = this.getClass().getSimpleName();
     private int WAYPOINT_COUNT = 0;
+
     @Override
     public void onDownloadUpdate(@NonNull WaypointMissionDownloadEvent waypointMissionDownloadEvent) {
         // Example of Download Listener

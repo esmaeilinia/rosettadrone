@@ -48,12 +48,12 @@ import dji.common.flightcontroller.GPSSignalLevel;
 import dji.common.flightcontroller.LocationCoordinate3D;
 import dji.common.mission.waypoint.Waypoint;
 import dji.sdk.flightcontroller.FlightController;
+import dji.sdk.mission.MissionControl;
 import dji.sdk.mission.waypoint.WaypointMissionOperator;
 import sq.rogue.rosettadrone.ArduCopterFlightModes;
 import sq.rogue.rosettadrone.drone.Drone;
 
 import static com.MAVLink.enums.MAV_COMPONENT.MAV_COMP_ID_AUTOPILOT1;
-import static dji.common.flightcontroller.GPSSignalLevel.*;
 import static sq.rogue.rosettadrone.util.getTimestampMicroseconds;
 
 public class GCSManager {
@@ -63,7 +63,7 @@ public class GCSManager {
     private final static int SYSTEM_ID = 0x01;
 
     //Current mavlink version
-    private final static int  MAVLINK_VERSION = 0x03;
+    private final static int MAVLINK_VERSION = 0x03;
 
     private IGCSManager mGCSManagerCallback;
     private DatagramSocket mSocket;
@@ -95,15 +95,8 @@ public class GCSManager {
     //---------------------------------------------------------------------------------------
 
     /**
-     * Set the IP address of the ground station
-     * @param gcsAddress IP Address of the ground station as an InetAddress
-     */
-    public void setGCSAddress(InetAddress gcsAddress) {
-        mGCSAddress = gcsAddress;
-    }
-
-    /**
      * Get the currently set IP address for the ground station
+     *
      * @return IP address of the ground station as an InetAddress
      */
     public InetAddress getGCSAddress() {
@@ -111,19 +104,30 @@ public class GCSManager {
     }
 
     /**
-     * Set the port of the ground station
-     * @param gcsPort The port of the ground station to send telemetry traffic to
+     * Set the IP address of the ground station
+     *
+     * @param gcsAddress IP Address of the ground station as an InetAddress
      */
-    public void setGCSPort(int gcsPort) {
-        mGCSPort = gcsPort;
+    public void setGCSAddress(InetAddress gcsAddress) {
+        mGCSAddress = gcsAddress;
     }
 
     /**
      * Get the currently set port of the ground station
+     *
      * @return The port of the ground station that is currently used
      */
     public int getGCSPort() {
         return mGCSPort;
+    }
+
+    /**
+     * Set the port of the ground station
+     *
+     * @param gcsPort The port of the ground station to send telemetry traffic to
+     */
+    public void setGCSPort(int gcsPort) {
+        mGCSPort = gcsPort;
     }
 
     //---------------------------------------------------------------------------------------
@@ -132,12 +136,12 @@ public class GCSManager {
     //region socket
     //---------------------------------------------------------------------------------------
 
-    public void setSocket(DatagramSocket socket) {
-        mSocket = socket;
-    }
-
     public DatagramSocket getSocket() {
         return mSocket;
+    }
+
+    public void setSocket(DatagramSocket socket) {
+        mSocket = socket;
     }
 
     //---------------------------------------------------------------------------------------
@@ -147,7 +151,6 @@ public class GCSManager {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @param drone
      * @param linkQuality
      */
@@ -193,7 +196,6 @@ public class GCSManager {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @param drone
      */
     public void sendSystemStatus(Drone drone) {
@@ -276,7 +278,6 @@ public class GCSManager {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @param drone
      */
     public void sendGPSRawInt(Drone drone) {
@@ -330,7 +331,6 @@ public class GCSManager {
     }
 
     /**
-     *
      * @param drone
      */
     public void sendGlobalPositionInt(Drone drone) {
@@ -379,7 +379,6 @@ public class GCSManager {
     }
 
     /**
-     *
      * @param drone
      */
     public void sendHomePosition(Drone drone) {
@@ -400,17 +399,15 @@ public class GCSManager {
         double droneLat = flightController.getState().getHomeLocation().getLatitude();
         double droneLong = flightController.getState().getHomeLocation().getLongitude();
 
-        homePositionMessage.latitude = (int) (droneLat * Math.pow(10,7));
-        homePositionMessage.longitude = (int) (droneLong * Math.pow(10,7));
+        homePositionMessage.latitude = (int) (droneLat * Math.pow(10, 7));
+        homePositionMessage.longitude = (int) (droneLong * Math.pow(10, 7));
         homePositionMessage.altitude = (int) (flightController.getState().getHomePointAltitude());
 
         sendMessage(homePositionMessage);
     }
 
 
-
     /**
-     *
      * @param drone
      */
     public void sendAltitude(Drone drone) {
@@ -437,7 +434,6 @@ public class GCSManager {
     //endregion
 
     /**
-     *
      * @param drone
      */
     public void sendHeartbeat(Drone drone) {
@@ -467,7 +463,7 @@ public class GCSManager {
 
         heartbeatMessage.base_mode = MAV_MODE_FLAG.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED | MAV_MODE_FLAG.MAV_MODE_FLAG_MANUAL_INPUT_ENABLED;
 
-        switch(flightMode) {
+        switch (flightMode) {
             case MANUAL:
                 heartbeatMessage.custom_mode = ArduCopterFlightModes.STABILIZE;
                 break;
@@ -565,7 +561,6 @@ public class GCSManager {
     }
 
     /**
-     *
      * @param uplinkQuality
      */
     public void sendRCChannels(int uplinkQuality) {
@@ -596,7 +591,6 @@ public class GCSManager {
     }
 
     /**
-     *
      * @param drone
      */
     public void sendAttitude(Drone drone) {
@@ -625,7 +619,6 @@ public class GCSManager {
     }
 
     /**
-     *
      * @param drone
      */
     public void sendVFRHud(Drone drone) {
@@ -679,7 +672,6 @@ public class GCSManager {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @param messageID
      * @param result
      */
@@ -697,12 +689,10 @@ public class GCSManager {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @param drone
-     * @param waypointMissionOperator
      * @param seq
      */
-    public void sendMissionItem(Drone drone, WaypointMissionOperator waypointMissionOperator, int seq) {
+    public void sendMissionItem(Drone drone, int seq) {
         if (drone == null) {
             makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
             return;
@@ -716,6 +706,8 @@ public class GCSManager {
         }
 
         msg_mission_item missionItemMessage = new msg_mission_item();
+
+        WaypointMissionOperator waypointMissionOperator = MissionControl.getInstance().getWaypointMissionOperator();
 
         if (seq == 0) {
             missionItemMessage.x = (float) (flightController.getState().getHomeLocation().getLatitude());
@@ -734,7 +726,6 @@ public class GCSManager {
     }
 
     /**
-     *
      * @param seq
      */
     public void sendMissionItemReached(int seq) {
@@ -755,7 +746,6 @@ public class GCSManager {
     }
 
     /**
-     *
      * @param seq
      */
     public void requestMissionItem(int seq) {
@@ -795,6 +785,7 @@ public class GCSManager {
 
     /**
      * Send a telemetry packet to the ground station
+     *
      * @param message The {@link MAVLinkMessage} to send.
      */
     private void sendMessage(MAVLinkMessage message) {
@@ -811,10 +802,10 @@ public class GCSManager {
         byte[] encodedPacket = packet.encodePacket();
 
         try {
-          DatagramPacket datagramPacket = new DatagramPacket(encodedPacket, encodedPacket.length, mGCSAddress, mGCSPort);
-          mSocket.send(datagramPacket);
+            DatagramPacket datagramPacket = new DatagramPacket(encodedPacket, encodedPacket.length, mGCSAddress, mGCSPort);
+            mSocket.send(datagramPacket);
 
-          makeCallback(MAV_RESULT.MAV_RESULT_ACCEPTED);
+            makeCallback(MAV_RESULT.MAV_RESULT_ACCEPTED);
 
         } catch (IOException e) {
             e.printStackTrace();

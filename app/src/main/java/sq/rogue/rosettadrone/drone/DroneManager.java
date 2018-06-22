@@ -1,19 +1,15 @@
 package sq.rogue.rosettadrone.drone;
 
-import android.support.annotation.NonNull;
-
 import com.MAVLink.enums.MAV_RESULT;
 
 import java.util.Arrays;
 
 import dji.common.airlink.SignalQualityCallback;
-import dji.common.battery.AggregationState;
 import dji.common.battery.BatteryState;
 import dji.common.error.DJIError;
 import dji.common.mission.waypoint.WaypointMission;
 import dji.common.product.Model;
 import dji.common.remotecontroller.HardwareState;
-import dji.common.util.CommonCallbacks;
 import dji.sdk.airlink.AirLink;
 import dji.sdk.battery.Battery;
 import dji.sdk.flightcontroller.FlightController;
@@ -302,6 +298,7 @@ public class DroneManager {
 
     /**
      * Send a land command to the drone.
+     *
      * @return {@link MAV_RESULT#MAV_RESULT_ACCEPTED} if the drone accepts the command, otherwise if
      * it fails {@link MAV_RESULT#MAV_RESULT_FAILED} is returned.
      */
@@ -331,6 +328,7 @@ public class DroneManager {
 
     /**
      * Send a return to home command to the drone
+     *
      * @return {@link MAV_RESULT#MAV_RESULT_ACCEPTED} if the drone accepts the command, otherwise if
      * it fails {@link MAV_RESULT#MAV_RESULT_FAILED} is returned.
      */
@@ -401,8 +399,7 @@ public class DroneManager {
             // TODO reattempt if arming/disarming fails
             if (djiError == null) {
                 makeCallback(MAV_RESULT_FAILED);
-            }
-            else {
+            } else {
                 makeCallback(MAV_RESULT_ACCEPTED);
                 mDrone.setArmed(false);
             }
@@ -552,6 +549,7 @@ public class DroneManager {
 
     /**
      * Get the {@link WaypointMission} that is currently loaded on the drone.
+     *
      * @return The loaded {@link WaypointMission} if loaded, else null
      */
     public WaypointMission getLoadedWaypointMission() {
@@ -580,7 +578,6 @@ public class DroneManager {
     }
 
     /**
-     *
      * @param waypointMission
      */
     public void setWaypointMission(WaypointMission waypointMission) {
