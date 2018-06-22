@@ -103,48 +103,6 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
     private boolean mMotorsArmed = false;
     private RosettaMissionOperatorListener mMissionOperatorListener;
 
-
-    public void setWaypointMission(WaypointMission wpMission) {
-        DJIError load_error = getWaypointMissionOperator().loadMission(wpMission);
-        if (load_error != null)
-            parent.logMessageDJI("loadMission() returned error: " + load_error.toString());
-        else {
-            parent.logMessageDJI("Uploading mission");
-            getWaypointMissionOperator().uploadMission(
-                    new CommonCallbacks.CompletionCallback() {
-                        @Override
-                        public void onResult(DJIError djiError) {
-                            if (djiError == null) {
-                                while (getWaypointMissionOperator().getCurrentState() == WaypointMissionState.UPLOADING) {
-                                    // Do nothing
-                                }
-                                if (getWaypointMissionOperator().getCurrentState() == WaypointMissionState.READY_TO_EXECUTE)
-                                    parent.logMessageDJI("Mission uploaded and ready to execute!");
-                                else
-                                    parent.logMessageDJI("Error uploading waypoint mission to drone");
-
-                            } else {
-                                parent.logMessageDJI("Error uploading: " + djiError.getDescription());
-                                parent.logMessageDJI(("Please try re-uploading"));
-                            }
-                            //parent.logMessageDJI("New state: " + getWaypointMissionOperator().getCurrentState().getName());
-                        }
-                    });
-        }
-    }
-
-    public Aircraft getDjiAircraft() {
-        return djiAircraft;
-    }
-
-    public boolean isSafetyEnabled() {
-        return mSafetyEnabled;
-    }
-
-    public void setSafetyEnabled(boolean SafetyEnabled) {
-        mSafetyEnabled = SafetyEnabled;
-    }
-
     public boolean setDjiAircraft(Aircraft djiAircraft) {
 
         if (djiAircraft == null || djiAircraft.getRemoteController() == null)
@@ -239,40 +197,6 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
 
     public ArrayList<MAVParameter> getParams() {
         return params;
-    }
-
-    public void tick() {
-        ticks += 100;
-
-        if (djiAircraft == null)
-            return;
-
-        try {
-            if (ticks % 100 == 0) {
-                send_attitude();
-                send_altitude();
-                send_vibration();
-                send_vfr_hud();
-            }
-            if (ticks % 300 == 0) {
-                send_global_position_int();
-                send_gps_raw_int();
-                send_radio_status();
-                send_rc_channels();
-            }
-            if (ticks % 1000 == 0) {
-                send_heartbeat();
-                send_sys_status();
-                send_power_status();
-                send_battery_status();
-            }
-            if (ticks % 5000 == 0) {
-                send_home_position();
-            }
-
-        } catch (Exception e) {
-            Log.d(TAG, "exception", e);
-        }
     }
 
     public void send_param(int index) {
@@ -454,62 +378,6 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
         }
         Log.d(TAG, "Request to set param that doesn't exist");
 
-    }
-
-
-    public void send_mission_count() {
-        msg_mission_count msg = new msg_mission_count();
-        msg.mission_type = MAV_MISSION_TYPE.MAV_MISSION_TYPE_MISSION;
-        sendMessage(msg);
-        return;
-    }
-
-    public void send_mission_item(int i) {
-        msg_mission_item msg = new msg_mission_item();
-
-        if (i == 0) {
-            msg.x = (float) (djiAircraft.getFlightController().getState().getHomeLocation().getLatitude());
-            msg.y = (float) (djiAircraft.getFlightController().getState().getHomeLocation().getLongitude());
-            msg.z = 0;
-        } else {
-            Waypoint wp = getWaypointMissionOperator().getLoadedMission().getWaypointList().get(i - 1);
-            msg.x = (float) (wp.coordinate.getLatitude());
-            msg.y = (float) (wp.coordinate.getLongitude());
-            msg.z = wp.altitude;
-        }
-
-        msg.seq = i;
-        msg.frame = MAV_FRAME.MAV_FRAME_GLOBAL_RELATIVE_ALT;
-        sendMessage(msg);
-    }
-
-    public void send_mission_item_reached(int seq) {
-        msg_mission_item_reached msg = new msg_mission_item_reached();
-        msg.seq = seq;
-        sendMessage(msg);
-    }
-
-    public void send_mission_ack() {
-        msg_mission_ack msg = new msg_mission_ack();
-        msg.type = MAV_MISSION_RESULT.MAV_MISSION_ACCEPTED;
-        msg.mission_type = MAV_MISSION_TYPE.MAV_MISSION_TYPE_MISSION;
-        sendMessage(msg);
-    }
-
-    public void fetch_gcs_mission() {
-        request_mission_list();
-    }
-
-    public void request_mission_list() {
-        msg_mission_request_list msg = new msg_mission_request_list();
-        sendMessage(msg);
-    }
-
-    public void request_mission_item(int seq) {
-        msg_mission_request msg = new msg_mission_request();
-        msg.seq = seq;
-        msg.mission_type = MAV_MISSION_TYPE.MAV_MISSION_TYPE_MISSION;
-        sendMessage(msg);
     }
 
     public void set_flight_mode(FlightControlState djiMode) {

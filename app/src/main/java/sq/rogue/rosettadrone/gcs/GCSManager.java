@@ -13,6 +13,12 @@ import com.MAVLink.common.msg_global_position_int;
 import com.MAVLink.common.msg_gps_raw_int;
 import com.MAVLink.common.msg_heartbeat;
 import com.MAVLink.common.msg_home_position;
+import com.MAVLink.common.msg_mission_ack;
+import com.MAVLink.common.msg_mission_count;
+import com.MAVLink.common.msg_mission_item;
+import com.MAVLink.common.msg_mission_item_reached;
+import com.MAVLink.common.msg_mission_request;
+import com.MAVLink.common.msg_mission_request_list;
 import com.MAVLink.common.msg_power_status;
 import com.MAVLink.common.msg_radio_status;
 import com.MAVLink.common.msg_rc_channels;
@@ -22,6 +28,9 @@ import com.MAVLink.common.msg_vfr_hud;
 import com.MAVLink.common.msg_vibration;
 import com.MAVLink.enums.GPS_FIX_TYPE;
 import com.MAVLink.enums.MAV_AUTOPILOT;
+import com.MAVLink.enums.MAV_FRAME;
+import com.MAVLink.enums.MAV_MISSION_RESULT;
+import com.MAVLink.enums.MAV_MISSION_TYPE;
 import com.MAVLink.enums.MAV_MODE_FLAG;
 import com.MAVLink.enums.MAV_PROTOCOL_CAPABILITY;
 import com.MAVLink.enums.MAV_RESULT;
@@ -37,7 +46,9 @@ import dji.common.flightcontroller.Attitude;
 import dji.common.flightcontroller.FlightMode;
 import dji.common.flightcontroller.GPSSignalLevel;
 import dji.common.flightcontroller.LocationCoordinate3D;
+import dji.common.mission.waypoint.Waypoint;
 import dji.sdk.flightcontroller.FlightController;
+import dji.sdk.mission.waypoint.WaypointMissionOperator;
 import sq.rogue.rosettadrone.ArduCopterFlightModes;
 import sq.rogue.rosettadrone.drone.Drone;
 
@@ -677,6 +688,103 @@ public class GCSManager {
         ack.command = messageID;
         ack.result = (short) result;
         sendMessage(ack);
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region mission
+    //---------------------------------------------------------------------------------------
+
+    /**
+     *
+     * @param drone
+     * @param waypointMissionOperator
+     * @param seq
+     */
+    public void sendMissionItem(Drone drone, WaypointMissionOperator waypointMissionOperator, int seq) {
+        if (drone == null) {
+            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
+            return;
+        }
+
+        FlightController flightController = drone.getFlightController();
+
+        if (flightController == null) {
+            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
+            return;
+        }
+
+        msg_mission_item missionItemMessage = new msg_mission_item();
+
+        if (seq == 0) {
+            missionItemMessage.x = (float) (flightController.getState().getHomeLocation().getLatitude());
+            missionItemMessage.y = (float) (flightController.getState().getHomeLocation().getLongitude());
+            missionItemMessage.z = 0;
+        } else {
+            Waypoint wp = waypointMissionOperator.getLoadedMission().getWaypointList().get(seq - 1);
+            missionItemMessage.x = (float) (wp.coordinate.getLatitude());
+            missionItemMessage.y = (float) (wp.coordinate.getLongitude());
+            missionItemMessage.z = wp.altitude;
+        }
+
+        missionItemMessage.seq = seq;
+        missionItemMessage.frame = MAV_FRAME.MAV_FRAME_GLOBAL_RELATIVE_ALT;
+        sendMessage(missionItemMessage);
+    }
+
+    /**
+     *
+     * @param seq
+     */
+    public void sendMissionItemReached(int seq) {
+        msg_mission_item_reached msg = new msg_mission_item_reached();
+        msg.seq = seq;
+        sendMessage(msg);
+    }
+
+    /**
+     *
+     */
+    public void sendMissionCount() {
+        msg_mission_count missionCountMessage = new msg_mission_count();
+
+        missionCountMessage.mission_type = MAV_MISSION_TYPE.MAV_MISSION_TYPE_MISSION;
+
+        sendMessage(missionCountMessage);
+    }
+
+    /**
+     *
+     * @param seq
+     */
+    public void requestMissionItem(int seq) {
+        msg_mission_request requestMissionItemMessage = new msg_mission_request();
+
+        requestMissionItemMessage.seq = seq;
+        requestMissionItemMessage.mission_type = MAV_MISSION_TYPE.MAV_MISSION_TYPE_MISSION;
+
+        sendMessage(requestMissionItemMessage);
+    }
+
+    /**
+     *
+     */
+    public void requestMissionList() {
+        msg_mission_request_list requestMissionListMessage = new msg_mission_request_list();
+        sendMessage(requestMissionListMessage);
+    }
+
+    /**
+     *
+     */
+    public void sendMissionACK() {
+        msg_mission_ack missionACKMessage = new msg_mission_ack();
+
+        missionACKMessage.type = MAV_MISSION_RESULT.MAV_MISSION_ACCEPTED;
+        missionACKMessage.mission_type = MAV_MISSION_TYPE.MAV_MISSION_TYPE_MISSION;
+
+        sendMessage(missionACKMessage);
     }
 
     //---------------------------------------------------------------------------------------

@@ -143,13 +143,8 @@ public class DroneManager {
         RemoteController rc = mDrone.getRemoteController();
         if (rc != null) {
             if (callback == null) {
-                rc.setHardwareStateCallback(new HardwareState.HardwareStateCallback() {
-                    @Override
-                    public void onUpdate(@NonNull HardwareState hardwareState) {
-                        mDrone.setThrottle(
-                                (hardwareState.getLeftStick().getVerticalPosition() + 660) / 1320);
-                    }
-                });
+                rc.setHardwareStateCallback(hardwareState -> mDrone.setThrottle(
+                        (hardwareState.getLeftStick().getVerticalPosition() + 660) / 1320));
             } else {
                 rc.setHardwareStateCallback(callback);
             }
@@ -184,26 +179,20 @@ public class DroneManager {
             if (callback == null) {
 
                 if (mDrone.getModel() == Model.MATRICE_600 || mDrone.getModel() == Model.MATRICE_600_PRO) {
-                    Battery.setAggregationStateCallback(new AggregationState.Callback() {
-                        @Override
-                        public void onUpdate(AggregationState aggregationState) {
-                            mDrone.setCapacity(aggregationState.getFullChargeCapacity());
-                            mDrone.setChargeRemaining(aggregationState.getChargeRemaining());
-                            mDrone.setVoltage(aggregationState.getVoltage());
-                            mDrone.setCurrent(Math.abs(aggregationState.getCurrent()));
-                            mDrone.setTemp(aggregationState.getHighestTemperature());
-                        }
+                    Battery.setAggregationStateCallback(aggregationState -> {
+                        mDrone.setCapacity(aggregationState.getFullChargeCapacity());
+                        mDrone.setChargeRemaining(aggregationState.getChargeRemaining());
+                        mDrone.setVoltage(aggregationState.getVoltage());
+                        mDrone.setCurrent(Math.abs(aggregationState.getCurrent()));
+                        mDrone.setTemp(aggregationState.getHighestTemperature());
                     });
                 } else {
-                    battery.setStateCallback(new BatteryState.Callback() {
-                        @Override
-                        public void onUpdate(BatteryState batteryState) {
-                            mDrone.setCapacity(batteryState.getFullChargeCapacity());
-                            mDrone.setChargeRemaining(batteryState.getChargeRemaining());
-                            mDrone.setVoltage(batteryState.getVoltage());
-                            mDrone.setCurrent(Math.abs(batteryState.getCurrent()));
-                            mDrone.setTemp(batteryState.getTemperature());
-                        }
+                    battery.setStateCallback(batteryState -> {
+                        mDrone.setCapacity(batteryState.getFullChargeCapacity());
+                        mDrone.setChargeRemaining(batteryState.getChargeRemaining());
+                        mDrone.setVoltage(batteryState.getVoltage());
+                        mDrone.setCurrent(Math.abs(batteryState.getCurrent()));
+                        mDrone.setTemp(batteryState.getTemperature());
                     });
                 }
             } else {
@@ -237,23 +226,13 @@ public class DroneManager {
         if (airLink != null) {
 
             if (downlinkCallback == null) {
-                airLink.setDownlinkSignalQualityCallback(new SignalQualityCallback() {
-                    @Override
-                    public void onUpdate(int i) {
-                        mDownlinkQuality = i;
-                    }
-                });
+                airLink.setDownlinkSignalQualityCallback(i -> mDownlinkQuality = i);
             } else {
                 airLink.setDownlinkSignalQualityCallback(downlinkCallback);
             }
 
             if (uplinkCallback == null) {
-                airLink.setUplinkSignalQualityCallback(new SignalQualityCallback() {
-                    @Override
-                    public void onUpdate(int i) {
-                        mUplinkQuality = i;
-                    }
-                });
+                airLink.setUplinkSignalQualityCallback(i -> mUplinkQuality = i);
             } else {
                 airLink.setUplinkSignalQualityCallback(uplinkCallback);
             }
@@ -418,18 +397,14 @@ public class DroneManager {
             return;
         }
 
-        flightController.turnOffMotors(new CommonCallbacks.CompletionCallback() {
-
-            @Override
-            public void onResult(DJIError djiError) {
-                // TODO reattempt if arming/disarming fails
-                if (djiError == null) {
-                    makeCallback(MAV_RESULT_FAILED);
-                }
-                else {
-                    makeCallback(MAV_RESULT_ACCEPTED);
-                    mDrone.setArmed(false);
-                }
+        flightController.turnOffMotors(djiError -> {
+            // TODO reattempt if arming/disarming fails
+            if (djiError == null) {
+                makeCallback(MAV_RESULT_FAILED);
+            }
+            else {
+                makeCallback(MAV_RESULT_ACCEPTED);
+                mDrone.setArmed(false);
             }
         });
     }
