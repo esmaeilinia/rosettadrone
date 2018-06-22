@@ -103,26 +103,6 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
     private boolean mMotorsArmed = false;
     private RosettaMissionOperatorListener mMissionOperatorListener;
 
-    public DroneModel(MainActivity parent, DatagramSocket socket) {
-        this.parent = parent;
-        this.socket = socket;
-    }
-
-    public boolean isMotorsArmed() {
-        return mMotorsArmed;
-    }
-
-    public void setMotorsArmed(boolean motorsArmed) {
-        mMotorsArmed = motorsArmed;
-    }
-
-    public int getGCSCommandedMode() {
-        return mGCSCommandedMode;
-    }
-
-    public void setGCSCommandedMode(int GCSCommandedMode) {
-        mGCSCommandedMode = GCSCommandedMode;
-    }
 
     public void setWaypointMission(WaypointMission wpMission) {
         DJIError load_error = getWaypointMissionOperator().loadMission(wpMission);
@@ -261,14 +241,6 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
         return params;
     }
 
-    public DatagramSocket getSocket() {
-        return socket;
-    }
-
-    public void setSocket(DatagramSocket socket) {
-        this.socket = socket;
-    }
-
     public void tick() {
         ticks += 100;
 
@@ -301,118 +273,6 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
         } catch (Exception e) {
             Log.d(TAG, "exception", e);
         }
-    }
-
-    public void armMotors() {
-        if (mSafetyEnabled) {
-            parent.logMessageDJI("You must turn off the safety lock to arm motors");
-            send_command_ack(MAV_CMD_COMPONENT_ARM_DISARM, MAV_RESULT.MAV_RESULT_DENIED);
-            return;
-        } else {
-            send_command_ack(MAV_CMD_COMPONENT_ARM_DISARM, MAV_RESULT.MAV_RESULT_ACCEPTED);
-            mMotorsArmed = true;
-        }
-        return;
-
-//
-//        djiAircraft.getFlightController().turnOnMotors(new CommonCallbacks.CompletionCallback() {
-//            @Override
-//            public void onResult(DJIError djiError) {
-//                // TODO reattempt if arming/disarming fails
-//                if (djiError == null) {
-//                    send_command_ack(MAV_CMD_COMPONENT_ARM_DISARM, MAV_RESULT.MAV_RESULT_ACCEPTED);
-//                    mSafetyEnabled = false;
-//                } else
-//                    send_command_ack(MAV_CMD_COMPONENT_ARM_DISARM, MAV_RESULT.MAV_RESULT_FAILED);
-//                Log.d(TAG, "onResult()");
-//            }
-//        });
-    }
-
-    public void disarmMotors() {
-        djiAircraft.getFlightController().turnOffMotors(new CommonCallbacks.CompletionCallback() {
-
-            @Override
-            public void onResult(DJIError djiError) {
-                // TODO reattempt if arming/disarming fails
-                if (djiError == null)
-                    send_command_ack(MAV_CMD_COMPONENT_ARM_DISARM, MAV_RESULT.MAV_RESULT_ACCEPTED);
-                else
-                    send_command_ack(MAV_CMD_COMPONENT_ARM_DISARM, MAV_RESULT.MAV_RESULT_FAILED);
-                Log.d(TAG, "onResult()");
-                mMotorsArmed = false;
-            }
-        });
-    }
-
-    public void send_global_position_int() {
-        msg_global_position_int msg = new msg_global_position_int();
-
-        LocationCoordinate3D coord = djiAircraft.getFlightController().getState().getAircraftLocation();
-        msg.lat = (int) (coord.getLatitude() * Math.pow(10, 7));
-        msg.lon = (int) (coord.getLongitude() * Math.pow(10, 7));
-
-        // NOTE: Commented out this field, because msg.relative_alt seems to be intended for altitude above the current terrain,
-        // but DJI reports altitude above home point.
-        // Mavlink: Millimeters above ground (unspecified: presumably above home point?)
-        // DJI: relative altitude of the aircraft relative to take off location, measured by barometer, in meters.
-        msg.relative_alt = (int) (coord.getAltitude() * 1000);
-
-        // Mavlink: Millimeters AMSL
-        // msg.alt = ??? No method in SDK for obtaining MSL altitude.
-        // djiAircraft.getFlightController().getState().getHomePointAltitude()) seems promising, but always returns 0
-
-        // Mavlink: m/s*100
-        // DJI: m/s
-        msg.vx = (short) (djiAircraft.getFlightController().getState().getVelocityX() * 100); // positive values N
-        msg.vy = (short) (djiAircraft.getFlightController().getState().getVelocityY() * 100); // positive values E
-        msg.vz = (short) (djiAircraft.getFlightController().getState().getVelocityZ() * 100); // positive values down
-
-        // DJI=[-180,180] where 0 is true north, Mavlink=degrees
-        // TODO unspecified in Mavlink documentation whether this heading is true or magnetic
-        double yaw = djiAircraft.getFlightController().getState().getAttitude().yaw;
-        if (yaw < 0)
-            yaw += 360;
-        msg.hdg = (int) (yaw * 100);
-
-        sendMessage(msg);
-    }
-
-    public void send_global_position_int_cov() {
-        // not implemented
-        return;
-    }
-
-    public void send_gps_raw_int() {
-        msg_gps_raw_int msg = new msg_gps_raw_int();
-
-        LocationCoordinate3D coord = djiAircraft.getFlightController().getState().getAircraftLocation();
-
-
-        msg.time_usec = getTimestampMicroseconds();
-        msg.lat = (int) (coord.getLatitude() * Math.pow(10, 7));
-        msg.lon = (int) (coord.getLongitude() * Math.pow(10, 7));
-        // TODO msg.alt
-        // TODO msg.eph
-        // TODO msg.epv
-        // TODO msg.vel
-        // TODO msg.cog
-        msg.satellites_visible = (short) djiAircraft.getFlightController().getState().getSatelliteCount();
-
-        // DJI reports signal quality on a scale of 1-5
-        // Mavlink has separate codes for fix type.
-        GPSSignalLevel gpsLevel = djiAircraft.getFlightController().getState().getGPSSignalLevel();
-        if (gpsLevel == GPSSignalLevel.NONE)
-            msg.fix_type = GPS_FIX_TYPE.GPS_FIX_TYPE_NO_FIX;
-        if (gpsLevel == GPSSignalLevel.LEVEL_0 || gpsLevel == GPSSignalLevel.LEVEL_1)
-            msg.fix_type = GPS_FIX_TYPE.GPS_FIX_TYPE_NO_FIX;
-        if (gpsLevel == GPSSignalLevel.LEVEL_2)
-            msg.fix_type = GPS_FIX_TYPE.GPS_FIX_TYPE_2D_FIX;
-        if (gpsLevel == GPSSignalLevel.LEVEL_3 || gpsLevel == GPSSignalLevel.LEVEL_4 ||
-                gpsLevel == GPSSignalLevel.LEVEL_5)
-            msg.fix_type = GPS_FIX_TYPE.GPS_FIX_TYPE_3D_FIX;
-
-        sendMessage(msg);
     }
 
     public void send_param(int index) {

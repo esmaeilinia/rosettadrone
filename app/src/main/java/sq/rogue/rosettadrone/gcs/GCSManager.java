@@ -1,5 +1,7 @@
 package sq.rogue.rosettadrone.gcs;
 
+import android.util.Log;
+
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.common.msg_altitude;
@@ -7,6 +9,8 @@ import com.MAVLink.common.msg_attitude;
 import com.MAVLink.common.msg_autopilot_version;
 import com.MAVLink.common.msg_battery_status;
 import com.MAVLink.common.msg_command_ack;
+import com.MAVLink.common.msg_global_position_int;
+import com.MAVLink.common.msg_gps_raw_int;
 import com.MAVLink.common.msg_heartbeat;
 import com.MAVLink.common.msg_home_position;
 import com.MAVLink.common.msg_power_status;
@@ -16,6 +20,7 @@ import com.MAVLink.common.msg_statustext;
 import com.MAVLink.common.msg_sys_status;
 import com.MAVLink.common.msg_vfr_hud;
 import com.MAVLink.common.msg_vibration;
+import com.MAVLink.enums.GPS_FIX_TYPE;
 import com.MAVLink.enums.MAV_AUTOPILOT;
 import com.MAVLink.enums.MAV_MODE_FLAG;
 import com.MAVLink.enums.MAV_PROTOCOL_CAPABILITY;
@@ -30,14 +35,18 @@ import java.net.InetAddress;
 
 import dji.common.flightcontroller.Attitude;
 import dji.common.flightcontroller.FlightMode;
+import dji.common.flightcontroller.GPSSignalLevel;
 import dji.common.flightcontroller.LocationCoordinate3D;
 import dji.sdk.flightcontroller.FlightController;
 import sq.rogue.rosettadrone.ArduCopterFlightModes;
 import sq.rogue.rosettadrone.drone.Drone;
 
 import static com.MAVLink.enums.MAV_COMPONENT.MAV_COMP_ID_AUTOPILOT1;
+import static dji.common.flightcontroller.GPSSignalLevel.*;
+import static sq.rogue.rosettadrone.util.getTimestampMicroseconds;
 
 public class GCSManager {
+    private final static String TAG = GCSManager.class.getSimpleName();
 
     //Vehicles *generally* have a system ID of 1
     private final static int SYSTEM_ID = 0x01;
@@ -51,17 +60,21 @@ public class GCSManager {
     private InetAddress mGCSAddress;
     private int mGCSPort;
 
+    private long ticks;
+
     //region constructors
     //---------------------------------------------------------------------------------------
 
     public GCSManager() {
         mGCSAddress = null;
         mGCSPort = -1;
+        ticks = 0;
     }
 
     public GCSManager(InetAddress gcsAddress, int gcsPort) {
         setGCSAddress(gcsAddress);
         setGCSPort(gcsPort);
+        ticks = 0;
     }
 
     //---------------------------------------------------------------------------------------
@@ -114,6 +127,52 @@ public class GCSManager {
 
     public DatagramSocket getSocket() {
         return mSocket;
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region loop
+    //---------------------------------------------------------------------------------------
+
+    /**
+     *
+     * @param drone
+     * @param linkQuality
+     */
+    public void tick(Drone drone, int linkQuality) {
+        ticks += 100;
+
+        if (drone == null) {
+            return;
+        }
+
+        try {
+            if (ticks % 100 == 0) {
+                sendAttitude(drone);
+                sendAltitude(drone);
+                sendVibration();
+                sendVFRHud(drone);
+            }
+            if (ticks % 300 == 0) {
+                sendGlobalPositionInt(drone);
+                sendGPSRawInt(drone);
+                sendRadioStatus();
+                sendRCChannels(linkQuality);
+            }
+            if (ticks % 1000 == 0) {
+                sendHeartbeat(drone);
+                sendSystemStatus(drone);
+                sendPowerStatus(drone);
+                sendBatteryStatus();
+            }
+            if (ticks % 5000 == 0) {
+                sendHomePosition(drone);
+            }
+
+        } catch (Exception e) {
+            Log.d(TAG, "exception", e);
+        }
     }
 
     //---------------------------------------------------------------------------------------
@@ -197,6 +256,170 @@ public class GCSManager {
         statusTextMessage.severity = (short) severity;
 
         sendMessage(statusTextMessage);
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region location
+    //---------------------------------------------------------------------------------------
+
+    /**
+     *
+     * @param drone
+     */
+    public void sendGPSRawInt(Drone drone) {
+        if (drone == null) {
+            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
+            return;
+        }
+
+        FlightController flightController = drone.getFlightController();
+
+        if (flightController == null) {
+            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
+            return;
+        }
+
+        LocationCoordinate3D coordinate3D = flightController.getState().getAircraftLocation();
+
+        msg_gps_raw_int gpsRawIntMessage = new msg_gps_raw_int();
+
+        gpsRawIntMessage.time_usec = getTimestampMicroseconds();
+        gpsRawIntMessage.lat = (int) (coordinate3D.getLatitude() * Math.pow(10, 7));
+        gpsRawIntMessage.lon = (int) (coordinate3D.getLongitude() * Math.pow(10, 7));
+        // TODO msg.alt
+        // TODO msg.eph
+        // TODO msg.epv
+        // TODO msg.vel
+        // TODO msg.cog
+        gpsRawIntMessage.satellites_visible = (short) flightController.getState().getSatelliteCount();
+
+        // DJI reports signal quality on a scale of 1-5
+        // Mavlink has separate codes for fix type.
+        GPSSignalLevel gpsSignalLevel = flightController.getState().getGPSSignalLevel();
+
+        switch (gpsSignalLevel) {
+            case NONE:
+            case LEVEL_0:
+            case LEVEL_1:
+                gpsRawIntMessage.fix_type = GPS_FIX_TYPE.GPS_FIX_TYPE_NO_FIX;
+                break;
+            case LEVEL_2:
+                gpsRawIntMessage.fix_type = GPS_FIX_TYPE.GPS_FIX_TYPE_2D_FIX;
+                break;
+            case LEVEL_3:
+            case LEVEL_4:
+            case LEVEL_5:
+                gpsRawIntMessage.fix_type = GPS_FIX_TYPE.GPS_FIX_TYPE_3D_FIX;
+                break;
+        }
+
+        sendMessage(gpsRawIntMessage);
+    }
+
+    /**
+     *
+     * @param drone
+     */
+    public void sendGlobalPositionInt(Drone drone) {
+        if (drone == null) {
+            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
+            return;
+        }
+
+        FlightController flightController = drone.getFlightController();
+
+        if (flightController == null) {
+            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
+            return;
+        }
+
+        msg_global_position_int globalPositionIntMessage = new msg_global_position_int();
+
+        LocationCoordinate3D coordinate3D = flightController.getState().getAircraftLocation();
+        globalPositionIntMessage.lat = (int) (coordinate3D.getLatitude() * Math.pow(10, 7));
+        globalPositionIntMessage.lon = (int) (coordinate3D.getLongitude() * Math.pow(10, 7));
+
+        // NOTE: Commented out this field, because msg.relative_alt seems to be intended for altitude above the current terrain,
+        // but DJI reports altitude above home point.
+        // Mavlink: Millimeters above ground (unspecified: presumably above home point?)
+        // DJI: relative altitude of the aircraft relative to take off location, measured by barometer, in meters.
+        globalPositionIntMessage.relative_alt = (int) (coordinate3D.getAltitude() * 1000);
+
+        // Mavlink: Millimeters AMSL
+        // msg.alt = ??? No method in SDK for obtaining MSL altitude.
+        // djiAircraft.getFlightController().getState().getHomePointAltitude()) seems promising, but always returns 0
+
+        // Mavlink: m/s*100
+        // DJI: m/s
+        globalPositionIntMessage.vx = (short) (flightController.getState().getVelocityX() * 100); // positive values N
+        globalPositionIntMessage.vy = (short) (flightController.getState().getVelocityY() * 100); // positive values E
+        globalPositionIntMessage.vz = (short) (flightController.getState().getVelocityZ() * 100); // positive values down
+
+        // DJI=[-180,180] where 0 is true north, Mavlink=degrees
+        // TODO unspecified in Mavlink documentation whether this heading is true or magnetic
+        double yaw = flightController.getState().getAttitude().yaw;
+        if (yaw < 0)
+            yaw += 360;
+        globalPositionIntMessage.hdg = (int) (yaw * 100);
+
+        sendMessage(globalPositionIntMessage);
+    }
+
+    /**
+     *
+     * @param drone
+     */
+    public void sendHomePosition(Drone drone) {
+        if (drone == null) {
+            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
+            return;
+        }
+
+        FlightController flightController = drone.getFlightController();
+
+        if (flightController == null) {
+            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
+            return;
+        }
+
+        msg_home_position homePositionMessage = new msg_home_position();
+
+        double droneLat = flightController.getState().getHomeLocation().getLatitude();
+        double droneLong = flightController.getState().getHomeLocation().getLongitude();
+
+        homePositionMessage.latitude = (int) (droneLat * Math.pow(10,7));
+        homePositionMessage.longitude = (int) (droneLong * Math.pow(10,7));
+        homePositionMessage.altitude = (int) (flightController.getState().getHomePointAltitude());
+
+        sendMessage(homePositionMessage);
+    }
+
+
+
+    /**
+     *
+     * @param drone
+     */
+    public void sendAltitude(Drone drone) {
+        if (drone == null) {
+            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
+            return;
+        }
+
+        FlightController flightController = drone.getFlightController();
+
+        if (flightController == null) {
+            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
+            return;
+        }
+
+        LocationCoordinate3D locationCoordinate3D = flightController.getState().getAircraftLocation();
+
+        msg_altitude msgAltitude = new msg_altitude();
+        msgAltitude.altitude_relative = (int) (locationCoordinate3D.getAltitude() * 1000);
+        sendMessage(msgAltitude);
     }
 
     //---------------------------------------------------------------------------------------
@@ -353,35 +576,6 @@ public class GCSManager {
 
     /**
      *
-     * @param drone
-     */
-    public void sendHomePosition(Drone drone) {
-        if (drone == null) {
-            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
-            return;
-        }
-
-        FlightController flightController = drone.getFlightController();
-
-        if (flightController == null) {
-            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
-            return;
-        }
-
-        msg_home_position homePositionMessage = new msg_home_position();
-
-        double droneLat = flightController.getState().getHomeLocation().getLatitude();
-        double droneLong = flightController.getState().getHomeLocation().getLongitude();
-
-        homePositionMessage.latitude = (int) (droneLat * Math.pow(10,7));
-        homePositionMessage.longitude = (int) (droneLong * Math.pow(10,7));
-        homePositionMessage.altitude = (int) (flightController.getState().getHomePointAltitude());
-
-        sendMessage(homePositionMessage);
-    }
-
-    /**
-     *
      */
     public void sendAutopilotVersion() {
         msg_autopilot_version autopilotVersionMessage = new msg_autopilot_version();
@@ -417,30 +611,6 @@ public class GCSManager {
         // TODO msg.pitchspeed = 0;
         // TODO msg.yawspeed = 0;
         sendMessage(msgAttitude);
-    }
-
-    /**
-     *
-     * @param drone
-     */
-    public void sendAltitude(Drone drone) {
-        if (drone == null) {
-            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
-            return;
-        }
-
-        FlightController flightController = drone.getFlightController();
-
-        if (flightController == null) {
-            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
-            return;
-        }
-
-        LocationCoordinate3D locationCoordinate3D = flightController.getState().getAircraftLocation();
-
-        msg_altitude msgAltitude = new msg_altitude();
-        msgAltitude.altitude_relative = (int) (locationCoordinate3D.getAltitude() * 1000);
-        sendMessage(msgAltitude);
     }
 
     /**

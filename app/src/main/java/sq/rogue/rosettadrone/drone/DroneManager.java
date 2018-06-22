@@ -27,6 +27,7 @@ import static com.MAVLink.enums.MAV_RESULT.MAV_RESULT_FAILED;
 import static dji.common.mission.waypoint.WaypointMissionState.EXECUTING;
 import static dji.common.mission.waypoint.WaypointMissionState.EXECUTION_PAUSED;
 import static dji.common.mission.waypoint.WaypointMissionState.READY_TO_EXECUTE;
+import static dji.common.mission.waypoint.WaypointMissionState.UPLOADING;
 
 
 /**
@@ -399,7 +400,6 @@ public class DroneManager {
             mDrone.setArmed(true);
         }
 
-
     }
 
     /**
@@ -601,6 +601,32 @@ public class DroneManager {
         } else {
             return waypointMission;
         }
+
+    }
+
+    /**
+     *
+     * @param waypointMission
+     */
+    public void setWaypointMission(WaypointMission waypointMission) {
+        DJIError loadMissionError = waypointMissionOperator.loadMission(waypointMission);
+
+        if (loadMissionError != null) {
+            makeCallback(MAV_RESULT_FAILED);
+            return;
+        }
+
+        waypointMissionOperator.uploadMission(djiError -> {
+            if (djiError != null) {
+                while (waypointMissionOperator.getCurrentState() == UPLOADING) {
+
+                }
+
+                if (waypointMissionOperator.getCurrentState() != READY_TO_EXECUTE) {
+                    makeCallback(MAV_RESULT_FAILED);
+                }
+            }
+        });
 
     }
 
