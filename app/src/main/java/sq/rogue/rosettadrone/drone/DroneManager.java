@@ -49,8 +49,6 @@ public class DroneManager {
         mUplinkQuality = 0;
         mDownlinkQuality = 0;
 
-        mGCSCommandedMode = 0;
-
         mDroneManagerCallback = null;
 
         if (drone == null) {
@@ -75,6 +73,8 @@ public class DroneManager {
      */
     private boolean initDrone(Drone drone) {
         mDrone = drone;
+
+        mDrone.setGCSCommandedMode(0);
 
         if (!setCellVoltages()) {
             return false;
@@ -267,7 +267,7 @@ public class DroneManager {
     //---------------------------------------------------------------------------------------
     //endregion
 
-    //region commands to drone
+    //region land/send home
     //---------------------------------------------------------------------------------------
 
     /**
@@ -311,7 +311,7 @@ public class DroneManager {
                     makeCallback(MAV_RESULT_FAILED);
                 } else {
                     makeCallback(MAV_RESULT_ACCEPTED);
-                    mGCSCommandedMode = -1;
+                    mDrone.setGCSCommandedMode(-1);
                 }
             });
         }
@@ -379,6 +379,63 @@ public class DroneManager {
 
     //---------------------------------------------------------------------------------------
     //endregion
+
+    //region arm/disarm
+    //---------------------------------------------------------------------------------------
+
+    /**
+     *
+     */
+    public void armMotors() {
+        if (mDrone == null) {
+            makeCallback(MAV_RESULT_FAILED);
+            return;
+        }
+
+        if (mDrone.isSafetyEnabled()) {
+            makeCallback(MAV_RESULT_DENIED);
+        } else {
+            makeCallback(MAV_RESULT_ACCEPTED);
+            mDrone.setArmed(true);
+        }
+
+
+    }
+
+    /**
+     *
+     */
+    public void disarmMotors() {
+        if (mDrone == null) {
+            makeCallback(MAV_RESULT_FAILED);
+            return;
+        }
+
+        FlightController flightController = mDrone.getFlightController();
+
+        if (flightController == null) {
+            makeCallback(MAV_RESULT_FAILED);
+            return;
+        }
+
+        flightController.turnOffMotors(new CommonCallbacks.CompletionCallback() {
+
+            @Override
+            public void onResult(DJIError djiError) {
+                // TODO reattempt if arming/disarming fails
+                if (djiError == null) {
+                    makeCallback(MAV_RESULT_FAILED);
+                }
+                else {
+                    makeCallback(MAV_RESULT_ACCEPTED);
+                    mDrone.setArmed(false);
+                }
+            }
+        });
+    }
+    //---------------------------------------------------------------------------------------
+    //endregion
+
 
     //region waypoints
     //---------------------------------------------------------------------------------------

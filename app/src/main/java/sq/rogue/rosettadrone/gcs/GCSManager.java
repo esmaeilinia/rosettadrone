@@ -4,6 +4,7 @@ import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.common.msg_altitude;
 import com.MAVLink.common.msg_attitude;
+import com.MAVLink.common.msg_autopilot_version;
 import com.MAVLink.common.msg_battery_status;
 import com.MAVLink.common.msg_command_ack;
 import com.MAVLink.common.msg_heartbeat;
@@ -13,9 +14,11 @@ import com.MAVLink.common.msg_radio_status;
 import com.MAVLink.common.msg_rc_channels;
 import com.MAVLink.common.msg_statustext;
 import com.MAVLink.common.msg_sys_status;
+import com.MAVLink.common.msg_vfr_hud;
 import com.MAVLink.common.msg_vibration;
 import com.MAVLink.enums.MAV_AUTOPILOT;
 import com.MAVLink.enums.MAV_MODE_FLAG;
+import com.MAVLink.enums.MAV_PROTOCOL_CAPABILITY;
 import com.MAVLink.enums.MAV_RESULT;
 import com.MAVLink.enums.MAV_STATE;
 import com.MAVLink.enums.MAV_TYPE;
@@ -379,6 +382,16 @@ public class GCSManager {
 
     /**
      *
+     */
+    public void sendAutopilotVersion() {
+        msg_autopilot_version autopilotVersionMessage = new msg_autopilot_version();
+        autopilotVersionMessage.capabilities = MAV_PROTOCOL_CAPABILITY.MAV_PROTOCOL_CAPABILITY_COMMAND_INT | MAV_PROTOCOL_CAPABILITY.MAV_PROTOCOL_CAPABILITY_MISSION_INT;
+
+        sendMessage(autopilotVersionMessage);
+    }
+
+    /**
+     *
      * @param drone
      */
     public void sendAttitude(Drone drone) {
@@ -432,6 +445,60 @@ public class GCSManager {
 
     /**
      *
+     * @param drone
+     */
+    public void sendVFRHud(Drone drone) {
+        if (drone == null) {
+            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
+            return;
+        }
+
+        FlightController flightController = drone.getFlightController();
+
+        if (flightController == null) {
+            makeCallback(MAV_RESULT.MAV_RESULT_FAILED);
+            return;
+        }
+
+        msg_vfr_hud vfrHudMessage = new msg_vfr_hud();
+
+        vfrHudMessage.airspeed = (float) (Math.sqrt(Math.pow(flightController.getState().getVelocityX(), 2) +
+                Math.pow(flightController.getState().getVelocityY(), 2)));
+
+        // Mavlink: Current ground speed in m/s. For now, just echoing airspeed.
+        //TODO
+        vfrHudMessage.groundspeed = vfrHudMessage.airspeed;
+
+        // Mavlink: Current heading in degrees, in compass units (0..360, 0=north)
+        // TODO: unspecified in Mavlink documentation whether this heading is true or magnetic
+        // DJI=[-180,180] where 0 is true north, Mavlink=degrees
+        double yaw = flightController.getState().getAttitude().yaw;
+        if (yaw < 0) {
+            yaw += 360;
+        }
+        vfrHudMessage.heading = (short) yaw;
+
+        // Mavlink: Current throttle setting in integer percent, 0 to 100
+        vfrHudMessage.throttle = drone.getThrottle();
+
+        // Mavlink: Current altitude (MSL), in meters
+        // DJI: relative altitude is altitude of the aircraft relative to take off location, measured by barometer, in meters.
+        // DJI: home altitude is home point's altitude. Units unspecified in DJI SDK documentation. Presumably meters AMSL.
+        LocationCoordinate3D coord = flightController.getState().getAircraftLocation();
+        vfrHudMessage.alt = (int) (coord.getAltitude());
+
+        // Mavlink: Current climb rate in meters/second
+        // DJI: m/s, positive values down
+        vfrHudMessage.climb = -(short) (flightController.getState().getVelocityZ());
+
+        sendMessage(vfrHudMessage);
+    }
+
+    //region acknowledgement
+    //---------------------------------------------------------------------------------------
+
+    /**
+     *
      * @param messageID
      * @param result
      */
@@ -441,6 +508,12 @@ public class GCSManager {
         ack.result = (short) result;
         sendMessage(ack);
     }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region send message
+    //---------------------------------------------------------------------------------------
 
     /**
      * Send a telemetry packet to the ground station
@@ -471,6 +544,9 @@ public class GCSManager {
         }
 
     }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
 
     //region callback
     //---------------------------------------------------------------------------------------

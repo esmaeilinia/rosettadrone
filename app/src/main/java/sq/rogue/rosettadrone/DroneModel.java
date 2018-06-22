@@ -345,12 +345,6 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
         });
     }
 
-    public void send_autopilot_version() {
-        msg_autopilot_version msg = new msg_autopilot_version();
-        msg.capabilities = MAV_PROTOCOL_CAPABILITY.MAV_PROTOCOL_CAPABILITY_COMMAND_INT;
-        msg.capabilities |= MAV_PROTOCOL_CAPABILITY.MAV_PROTOCOL_CAPABILITY_MISSION_INT;
-        sendMessage(msg);
-    }
     public void send_global_position_int() {
         msg_global_position_int msg = new msg_global_position_int();
 
@@ -417,41 +411,6 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
         if (gpsLevel == GPSSignalLevel.LEVEL_3 || gpsLevel == GPSSignalLevel.LEVEL_4 ||
                 gpsLevel == GPSSignalLevel.LEVEL_5)
             msg.fix_type = GPS_FIX_TYPE.GPS_FIX_TYPE_3D_FIX;
-
-        sendMessage(msg);
-    }
-
-    public void send_vfr_hud() {
-        msg_vfr_hud msg = new msg_vfr_hud();
-
-        // Mavlink: Current airspeed in m/s
-        // DJI: unclear whether getState() returns airspeed or groundspeed
-        msg.airspeed = (float) (Math.sqrt(Math.pow(djiAircraft.getFlightController().getState().getVelocityX(), 2) +
-                Math.pow(djiAircraft.getFlightController().getState().getVelocityY(), 2)));
-
-        // Mavlink: Current ground speed in m/s. For now, just echoing airspeed.
-        msg.groundspeed = msg.airspeed;
-
-        // Mavlink: Current heading in degrees, in compass units (0..360, 0=north)
-        // TODO: unspecified in Mavlink documentation whether this heading is true or magnetic
-        // DJI=[-180,180] where 0 is true north, Mavlink=degrees
-        double yaw = djiAircraft.getFlightController().getState().getAttitude().yaw;
-        if (yaw < 0)
-            yaw += 360;
-        msg.heading = (short) yaw;
-
-        // Mavlink: Current throttle setting in integer percent, 0 to 100
-        msg.throttle = mThrottleSetting;
-
-        // Mavlink: Current altitude (MSL), in meters
-        // DJI: relative altitude is altitude of the aircraft relative to take off location, measured by barometer, in meters.
-        // DJI: home altitude is home point's altitude. Units unspecified in DJI SDK documentation. Presumably meters AMSL.
-        LocationCoordinate3D coord = djiAircraft.getFlightController().getState().getAircraftLocation();
-        msg.alt = (int) (coord.getAltitude());
-
-        // Mavlink: Current climb rate in meters/second
-        // DJI: m/s, positive values down
-        msg.climb = -(short) (djiAircraft.getFlightController().getState().getVelocityZ());
 
         sendMessage(msg);
     }

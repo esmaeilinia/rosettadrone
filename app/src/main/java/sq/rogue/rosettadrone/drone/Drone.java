@@ -113,7 +113,7 @@ public class Drone extends Aircraft {
      *
      * @param mode
      */
-    public void setmGCSCommandedMode(int mode) {
+    public void setGCSCommandedMode(int mode) {
         mGCSCommandedMode = mode;
     }
 
