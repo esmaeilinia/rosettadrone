@@ -1,5 +1,32 @@
 package sq.rogue.rosettadrone.drone;
 
+//        Copyright (c) 2018, U.S. Federal Government (in countries where recognized)
+//
+//        Redistribution and use in source and binary forms, with or without
+//        modification, are permitted provided that the following conditions are met:
+//
+//        * Redistributions of source code must retain the above copyright notice, this
+//        list of conditions and the following disclaimer.
+//
+//        * Redistributions in binary form must reproduce the above copyright notice,
+//        this list of conditions and the following disclaimer in the documentation
+//        and/or other materials provided with the distribution.
+//
+//        * Neither the name of the copyright holder nor the names of its
+//        contributors may be used to endorse or promote products derived from
+//        this software without specific prior written permission.
+//
+//        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+//        AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//        IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+//        DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+//        FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//        DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+//        SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+//        CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+//        OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+//        OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 import com.MAVLink.enums.MAV_RESULT;
 
 import java.util.Arrays;
@@ -10,6 +37,7 @@ import dji.common.error.DJIError;
 import dji.common.mission.waypoint.WaypointMission;
 import dji.common.product.Model;
 import dji.common.remotecontroller.HardwareState;
+import dji.common.util.CommonCallbacks;
 import dji.sdk.airlink.AirLink;
 import dji.sdk.battery.Battery;
 import dji.sdk.flightcontroller.FlightController;
@@ -48,7 +76,7 @@ public class DroneManager {
 
         mDroneManagerCallback = null;
 
-        if (drone == null) {
+        if (drone == null || drone.getRemoteController() == null) {
             initDrone(new Drone());
         }
         initDrone(drone);
@@ -111,7 +139,8 @@ public class DroneManager {
     //---------------------------------------------------------------------------------------
 
     /**
-     * @return
+     * Initializes the cell voltages for the drone's battery
+     * @return true if the cell voltages are initialized successfully. false if the drone is not initialized.
      */
     private boolean setCellVoltages() {
         if (mDrone == null) {
@@ -194,6 +223,20 @@ public class DroneManager {
             } else {
                 battery.setStateCallback(callback);
             }
+
+            battery.getCellVoltages(new CommonCallbacks.CompletionCallbackWith<Integer[]>() {
+                @Override
+                public void onSuccess(Integer integer[]) {
+                    int[] cellVoltages = mDrone.getCellVoltages();
+                    for (int i = 0; i < integer.length; i++)
+                        cellVoltages[i] = integer[i];
+                }
+
+                @Override
+                public void onFailure(DJIError djiError) {
+
+                }
+            });
 
             return true;
         }

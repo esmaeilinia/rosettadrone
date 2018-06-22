@@ -109,58 +109,6 @@ public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCa
             return false;
         this.djiAircraft = djiAircraft;
 
-        Arrays.fill(mCellVoltages, 0xffff); // indicates no cell per mavlink definition
-
-        /**************************************************
-         * Called whenever RC state changes               *
-         **************************************************/
-
-        this.djiAircraft.getRemoteController().setHardwareStateCallback(new HardwareState.HardwareStateCallback() {
-            @Override
-            public void onUpdate(@NonNull HardwareState rcHardwareState) {
-                // DJI: range [-660,660]
-                mThrottleSetting = (rcHardwareState.getLeftStick().getVerticalPosition() + 660) / 1320;
-            }
-        });
-
-        /**************************************************
-         * Called whenever battery state changes          *
-         **************************************************/
-
-
-        if (this.djiAircraft != null) {
-            this.djiAircraft.getBattery().setStateCallback(new BatteryState.Callback() {
-
-                @Override
-                public void onUpdate(BatteryState batteryState) {
-                    Log.d(TAG, "Battery State callback");
-                    mFullChargeCapacity_mAh = batteryState.getFullChargeCapacity();
-                    mChargeRemaining_mAh = batteryState.getChargeRemaining();
-                    mVoltage_mV = batteryState.getVoltage();
-                    mCurrent_mA = Math.abs(batteryState.getCurrent());
-                    mBatteryTemp_C = batteryState.getTemperature();
-                    Log.d(TAG, "Current: " + String.valueOf(batteryState.getCurrent()));
-                }
-            });
-
-            this.djiAircraft.getBattery().getCellVoltages(new CellVoltageCompletionCallback());
-        } else {
-            Log.e(TAG, "djiAircraft.getBattery() IS NULL");
-            return false;
-        }
-
-        Battery.setAggregationStateCallback(new AggregationState.Callback() {
-            @Override
-            public void onUpdate(AggregationState aggregationState) {
-                Log.d(TAG, "Aggregation State callback");
-                mFullChargeCapacity_mAh = aggregationState.getFullChargeCapacity();
-                mChargeRemaining_mAh = aggregationState.getChargeRemaining();
-                mVoltage_mV = aggregationState.getVoltage();
-                mCurrent_mA = aggregationState.getCurrent();
-                Log.d(TAG, "Aggregated voltage: " + String.valueOf(aggregationState.getVoltage()));
-            }
-        });
-
         /**************************************************
          * Called whenever airlink quality changes        *
          **************************************************/
