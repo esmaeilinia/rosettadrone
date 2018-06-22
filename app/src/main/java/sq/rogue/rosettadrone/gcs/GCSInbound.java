@@ -1,4 +1,4 @@
-package sq.rogue.rosettadrone.telemetry;
+package sq.rogue.rosettadrone.gcs;
 
 import android.os.AsyncTask;
 import android.util.Log;
@@ -19,7 +19,7 @@ import java.util.TimerTask;
 
 import sq.rogue.rosettadrone.MainActivity;
 
-public class GCSOutbound {
+public class GCSInbound {
 //region GCS Timer Task
     //---------------------------------------------------------------------------------------
 

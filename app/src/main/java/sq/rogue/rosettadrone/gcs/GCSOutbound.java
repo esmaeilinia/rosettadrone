@@ -83,8 +83,8 @@ import sq.rogue.rosettadrone.drone.Drone;
 import static com.MAVLink.enums.MAV_COMPONENT.MAV_COMP_ID_AUTOPILOT1;
 import static sq.rogue.rosettadrone.util.getTimestampMicroseconds;
 
-public class GCSManager {
-    private final static String TAG = GCSManager.class.getSimpleName();
+public class GCSOutbound {
+    private final static String TAG = GCSOutbound.class.getSimpleName();
 
     //Vehicles *generally* have a system ID of 1
     private final static int SYSTEM_ID = 0x01;
@@ -92,7 +92,7 @@ public class GCSManager {
     //Current mavlink version
     private final static int MAVLINK_VERSION = 0x03;
 
-    private IGCSManager mGCSManagerCallback;
+    private IGCSOutbound mGCSOutboundCallback;
     private DatagramSocket mSocket;
 
     private InetAddress mGCSAddress;
@@ -103,13 +103,13 @@ public class GCSManager {
     //region constructors
     //---------------------------------------------------------------------------------------
 
-    public GCSManager() {
+    public GCSOutbound() {
         mGCSAddress = null;
         mGCSPort = -1;
         ticks = 0;
     }
 
-    public GCSManager(InetAddress gcsAddress, int gcsPort) {
+    public GCSOutbound(InetAddress gcsAddress, int gcsPort) {
         setGCSAddress(gcsAddress);
         setGCSPort(gcsPort);
         ticks = 0;
@@ -853,8 +853,8 @@ public class GCSManager {
      * @param value A {@link MAV_RESULT} code.
      */
     private void makeCallback(int value) {
-        if (mGCSManagerCallback != null) {
-            mGCSManagerCallback.onResult(value);
+        if (mGCSOutboundCallback != null) {
+            mGCSOutboundCallback.onResult(value);
         }
     }
 
@@ -862,23 +862,23 @@ public class GCSManager {
      * Hook into the callback interface. Only one hook can be acquired at a time. If multiple calls
      * are made only the most recent is sent a callback.
      *
-     * @param gcsManagerCallback
+     * @param gcsOutboundCallback
      */
-    public void setDroneManagerCallback(IGCSManager gcsManagerCallback) {
-        this.mGCSManagerCallback = gcsManagerCallback;
+    public void setGCSOutboundCallback(IGCSOutbound gcsOutboundCallback) {
+        this.mGCSOutboundCallback = gcsOutboundCallback;
     }
 
     /**
      * Remove the callback hook.
      */
     public void removeDroneManagerCallback() {
-        this.mGCSManagerCallback = null;
+        this.mGCSOutboundCallback = null;
     }
 
     /**
      * The callback interface. Called whenever an operation relating to drone operation fails or succeeds.
      */
-    public interface IGCSManager {
+    public interface IGCSOutbound {
         void onResult(int result);
     }
 
