@@ -13,6 +13,7 @@ import sq.rogue.rosettadrone.MainActivity;
 import sq.rogue.rosettadrone.NotificationHandler;
 import sq.rogue.rosettadrone.R;
 
+import static sq.rogue.rosettadrone.util.TYPE_DRONE_ID;
 import static sq.rogue.rosettadrone.util.TYPE_GCS_IP;
 import static sq.rogue.rosettadrone.util.TYPE_GCS_PORT;
 import static sq.rogue.rosettadrone.util.TYPE_VIDEO_IP;
@@ -53,83 +54,77 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     }
 
     public void setListeners() {
-        findPreference("pref_external_gcs").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-
-                MainActivity.FLAG_PREFS_CHANGED = true;
-                return true;
-            }
-        });
-
-        findPreference("pref_combined_gcs").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-
-                MainActivity.FLAG_PREFS_CHANGED = true;
-                return true;
-            }
-        });
-
-        findPreference("pref_gcs_ip").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-
-                if (Patterns.IP_ADDRESS.matcher((String) newValue).matches()) {
+        findPreference("pref_drone_id").setOnPreferenceChangeListener((preference, newValue) -> {
+            try {
+                if (Integer.parseInt((String) newValue) >= 1 && Integer.parseInt((String) newValue) <= 254) {
                     MainActivity.FLAG_PREFS_CHANGED = true;
                     return true;
-                } else {
-                    NotificationHandler.notifyAlert(SettingsFragment.this.getActivity(), TYPE_GCS_IP,
-                            null, null);
-                    return false;
                 }
+            } catch (NumberFormatException ignored) {
             }
+            NotificationHandler.notifyAlert(SettingsFragment.this.getActivity(), TYPE_DRONE_ID,
+                    null, null);
+            return false;
+        });
+        findPreference("pref_external_gcs").setOnPreferenceChangeListener((preference, newValue) -> {
+
+            MainActivity.FLAG_PREFS_CHANGED = true;
+            return true;
         });
 
-        findPreference("pref_video_ip").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                if (Patterns.IP_ADDRESS.matcher((String) newValue).matches()) {
-                    MainActivity.FLAG_PREFS_CHANGED = true;
-                    return true;
-                } else {
-                    NotificationHandler.notifyAlert(SettingsFragment.this.getActivity(), TYPE_VIDEO_IP,
-                            null, null);
-                    return false;
-                }
-            }
+        findPreference("pref_combined_gcs").setOnPreferenceChangeListener((preference, newValue) -> {
+
+            MainActivity.FLAG_PREFS_CHANGED = true;
+            return true;
         });
 
-        findPreference("pref_telem_port").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                try {
-                    if (Integer.parseInt((String) newValue) >= 1 && Integer.parseInt((String) newValue) <= 65535) {
-                        MainActivity.FLAG_PREFS_CHANGED = true;
-                        return true;
-                    }
-                } catch (NumberFormatException ignored) {
-                }
-                NotificationHandler.notifyAlert(SettingsFragment.this.getActivity(), TYPE_GCS_PORT,
+        findPreference("pref_gcs_ip").setOnPreferenceChangeListener((preference, newValue) -> {
+
+            if (Patterns.IP_ADDRESS.matcher((String) newValue).matches()) {
+                MainActivity.FLAG_PREFS_CHANGED = true;
+                return true;
+            } else {
+                NotificationHandler.notifyAlert(SettingsFragment.this.getActivity(), TYPE_GCS_IP,
                         null, null);
                 return false;
             }
         });
 
-        findPreference("pref_video_port").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                try {
-                    if (Integer.parseInt((String) newValue) >= 1 && Integer.parseInt((String) newValue) <= 65535) {
-                        MainActivity.FLAG_PREFS_CHANGED = true;
-                        return true;
-                    }
-                } catch (NumberFormatException ignored) {
-                }
-                NotificationHandler.notifyAlert(SettingsFragment.this.getActivity(), TYPE_VIDEO_PORT,
+        findPreference("pref_video_ip").setOnPreferenceChangeListener((preference, newValue) -> {
+            if (Patterns.IP_ADDRESS.matcher((String) newValue).matches()) {
+                MainActivity.FLAG_PREFS_CHANGED = true;
+                return true;
+            } else {
+                NotificationHandler.notifyAlert(SettingsFragment.this.getActivity(), TYPE_VIDEO_IP,
                         null, null);
                 return false;
             }
+        });
+
+        findPreference("pref_telem_port").setOnPreferenceChangeListener((preference, newValue) -> {
+            try {
+                if (Integer.parseInt((String) newValue) >= 1 && Integer.parseInt((String) newValue) <= 65535) {
+                    MainActivity.FLAG_PREFS_CHANGED = true;
+                    return true;
+                }
+            } catch (NumberFormatException ignored) {
+            }
+            NotificationHandler.notifyAlert(SettingsFragment.this.getActivity(), TYPE_GCS_PORT,
+                    null, null);
+            return false;
+        });
+
+        findPreference("pref_video_port").setOnPreferenceChangeListener((preference, newValue) -> {
+            try {
+                if (Integer.parseInt((String) newValue) >= 1 && Integer.parseInt((String) newValue) <= 65535) {
+                    MainActivity.FLAG_PREFS_CHANGED = true;
+                    return true;
+                }
+            } catch (NumberFormatException ignored) {
+            }
+            NotificationHandler.notifyAlert(SettingsFragment.this.getActivity(), TYPE_VIDEO_PORT,
+                    null, null);
+            return false;
         });
     }
 

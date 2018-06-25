@@ -20,7 +20,8 @@ import java.util.TimerTask;
 import sq.rogue.rosettadrone.MainActivity;
 
 public class GCSInbound {
-//region GCS Timer Task
+
+    //region GCS Timer Task
     //---------------------------------------------------------------------------------------
 
     private static class GCSSenderTimerTask extends TimerTask {

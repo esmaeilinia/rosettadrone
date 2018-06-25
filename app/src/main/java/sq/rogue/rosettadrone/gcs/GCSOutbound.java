@@ -86,14 +86,13 @@ import static sq.rogue.rosettadrone.util.getTimestampMicroseconds;
 public class GCSOutbound {
     private final static String TAG = GCSOutbound.class.getSimpleName();
 
-    //Vehicles *generally* have a system ID of 1
-    private final static int SYSTEM_ID = 0x01;
-
     //Current mavlink version
     private final static int MAVLINK_VERSION = 0x03;
 
     private IGCSOutbound mGCSOutboundCallback;
     private DatagramSocket mSocket;
+
+    private int mSystemID;
 
     private InetAddress mGCSAddress;
     private int mGCSPort;
@@ -106,12 +105,14 @@ public class GCSOutbound {
     public GCSOutbound() {
         mGCSAddress = null;
         mGCSPort = -1;
+        mSystemID = 0x01;
         ticks = 0;
     }
 
     public GCSOutbound(InetAddress gcsAddress, int gcsPort) {
         setGCSAddress(gcsAddress);
         setGCSPort(gcsPort);
+        mSystemID = 0x01;
         ticks = 0;
     }
 
@@ -173,6 +174,21 @@ public class GCSOutbound {
 
     //---------------------------------------------------------------------------------------
     //endregion
+
+    //region socket
+    //---------------------------------------------------------------------------------------
+
+    public int getSystemID() {
+        return mSystemID;
+    }
+
+    public void setSystemID(int systemID) {
+        mSystemID = systemID;
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
 
     //region loop
     //---------------------------------------------------------------------------------------
@@ -823,7 +839,7 @@ public class GCSOutbound {
 
         MAVLinkPacket packet = message.pack();
 
-        packet.sysid = SYSTEM_ID;
+        packet.sysid = mSystemID;
         packet.compid = MAV_COMP_ID_AUTOPILOT1;
 
         byte[] encodedPacket = packet.encodePacket();
