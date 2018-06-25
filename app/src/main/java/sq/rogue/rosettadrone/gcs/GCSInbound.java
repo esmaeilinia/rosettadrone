@@ -20,6 +20,8 @@ import java.util.TimerTask;
 import sq.rogue.rosettadrone.MainActivity;
 
 public class GCSInbound implements Runnable {
+    private final static int BUF_SIZE = 2048;
+
     private DatagramSocket mSocket;
 
     //region constructors
@@ -56,6 +58,9 @@ public class GCSInbound implements Runnable {
     @Override
     public void run() {
 
+        while (!Thread.interrupted()) {
+
+        }
     }
 
     //---------------------------------------------------------------------------------------
