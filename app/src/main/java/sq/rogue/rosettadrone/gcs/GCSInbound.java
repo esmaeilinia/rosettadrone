@@ -19,7 +19,47 @@ import java.util.TimerTask;
 
 import sq.rogue.rosettadrone.MainActivity;
 
-public class GCSInbound {
+public class GCSInbound implements Runnable {
+    private DatagramSocket mSocket;
+
+    //region constructors
+    //---------------------------------------------------------------------------------------
+
+    public GCSInbound() {
+        mSocket = null;
+    }
+
+    public GCSInbound(DatagramSocket socket) {
+        mSocket = socket;
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region socket
+    //---------------------------------------------------------------------------------------
+
+    public DatagramSocket getSocket() {
+        return mSocket;
+    }
+
+    public DatagramSocket setSocket(DatagramSocket socket) {
+        return mSocket = socket;
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region main loop
+    //---------------------------------------------------------------------------------------
+
+    @Override
+    public void run() {
+
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
 
     //region GCS Timer Task
     //---------------------------------------------------------------------------------------
