@@ -20,19 +20,23 @@ import java.util.TimerTask;
 import sq.rogue.rosettadrone.MainActivity;
 
 public class GCSInbound implements Runnable {
-    private final static int BUF_SIZE = 2048;
+    private final static int BUF_SIZE = 512;
 
     private DatagramSocket mSocket;
+
+    private Parser mMAVLinkParser;
 
     //region constructors
     //---------------------------------------------------------------------------------------
 
     public GCSInbound() {
         mSocket = null;
+        mMAVLinkParser = new Parser();
     }
 
     public GCSInbound(DatagramSocket socket) {
         mSocket = socket;
+        mMAVLinkParser = new Parser();
     }
 
     //---------------------------------------------------------------------------------------
@@ -59,7 +63,30 @@ public class GCSInbound implements Runnable {
     public void run() {
 
         while (!Thread.interrupted()) {
+            try {
+                byte[] buf = new byte[BUF_SIZE];
+                DatagramPacket dp = new DatagramPacket(buf, buf.length);
 
+                mSocket.receive(dp);
+
+                byte[] bytes = dp.getData();
+                int[] ints = new int[bytes.length];
+                for (int i = 0; i < bytes.length; i++)
+                    ints[i] = bytes[i] & 0xff;
+
+                for (int i = 0; i < bytes.length; i++) {
+                    MAVLinkPacket packet = mMavlinkParser.mavlink_parse_char(ints[i]);
+
+                    if (packet != null) {
+                        MAVLinkMessage msg = packet.unpack();
+                        if (mainActivityWeakReference.get().prefs.getBoolean("pref_log_mavlink", false))
+                            mainActivityWeakReference.get().logMessageFromGCS(msg.toString());
+                        mMavlinkReceiver.process(msg);
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

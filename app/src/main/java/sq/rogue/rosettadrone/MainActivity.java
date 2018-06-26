@@ -50,6 +50,7 @@ import dji.sdk.base.BaseProduct;
 import dji.sdk.sdkmanager.DJISDKManager;
 import sq.rogue.rosettadrone.logs.LogFragment;
 import sq.rogue.rosettadrone.settings.SettingsActivity;
+import sq.rogue.rosettadrone.util.util;
 import sq.rogue.rosettadrone.video.VideoService;
 
 import static android.support.design.widget.Snackbar.LENGTH_LONG;
@@ -482,7 +483,7 @@ public class MainActivity extends AppCompatActivity {
         mSafety.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 mModel.setSafetyEnabled(isChecked);
-                NotificationHandler.notifySnackbar(findViewById(R.id.snack),
+                util.NotificationHandler.notifySnackbar(findViewById(R.id.snack),
                         (mModel.isSafetyEnabled()) ? R.string.safety_on : R.string.safety_off, LENGTH_LONG);
             }
         });

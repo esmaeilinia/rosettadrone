@@ -1,17 +1,18 @@
-package sq.rogue.rosettadrone;
+package sq.rogue.rosettadrone.util;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.os.Process;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
 
-import static sq.rogue.rosettadrone.util.TYPE_DRONE_ID;
-import static sq.rogue.rosettadrone.util.TYPE_GCS_IP;
-import static sq.rogue.rosettadrone.util.TYPE_GCS_PORT;
-import static sq.rogue.rosettadrone.util.TYPE_VIDEO_IP;
-import static sq.rogue.rosettadrone.util.TYPE_VIDEO_PORT;
+import sq.rogue.rosettadrone.R;
+
+import static sq.rogue.rosettadrone.util.util.TYPE_DRONE_ID;
+import static sq.rogue.rosettadrone.util.util.TYPE_GCS_IP;
+import static sq.rogue.rosettadrone.util.util.TYPE_GCS_PORT;
+import static sq.rogue.rosettadrone.util.util.TYPE_VIDEO_IP;
+import static sq.rogue.rosettadrone.util.util.TYPE_VIDEO_PORT;
 
 public class NotificationHandler {
     public static void notifySnackbar(View view, int resID, int duration) {

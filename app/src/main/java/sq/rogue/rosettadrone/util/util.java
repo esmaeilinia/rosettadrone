@@ -1,4 +1,4 @@
-package sq.rogue.rosettadrone;
+package sq.rogue.rosettadrone.util;
 
 public class util {
 

@@ -1,11 +1,7 @@
 package sq.rogue.rosettadrone.managers;
 
-import android.app.Service;
-import android.content.Intent;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Looper;
-import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -15,9 +11,8 @@ import dji.sdk.base.BaseComponent;
 import dji.sdk.base.BaseProduct;
 import dji.sdk.products.Aircraft;
 import dji.sdk.sdkmanager.DJISDKManager;
-import sq.rogue.rosettadrone.DroneModel;
 
-import static sq.rogue.rosettadrone.util.safeSleep;
+import static sq.rogue.rosettadrone.util.util.safeSleep;
 
 public class DJIManager {
     private final String TAG = this.getClass().getSimpleName();

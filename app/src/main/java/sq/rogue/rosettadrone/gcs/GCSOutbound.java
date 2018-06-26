@@ -68,7 +68,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.nio.channels.DatagramChannel;
 
 import dji.common.flightcontroller.Attitude;
 import dji.common.flightcontroller.FlightMode;
@@ -82,7 +81,7 @@ import sq.rogue.rosettadrone.ArduCopterFlightModes;
 import sq.rogue.rosettadrone.drone.Drone;
 
 import static com.MAVLink.enums.MAV_COMPONENT.MAV_COMP_ID_AUTOPILOT1;
-import static sq.rogue.rosettadrone.util.getTimestampMicroseconds;
+import static sq.rogue.rosettadrone.util.util.getTimestampMicroseconds;
 
 public class GCSOutbound implements Runnable {
     private final static String TAG = GCSOutbound.class.getSimpleName();

@@ -10,14 +10,14 @@ import android.support.v7.preference.PreferenceGroup;
 import android.util.Patterns;
 
 import sq.rogue.rosettadrone.MainActivity;
-import sq.rogue.rosettadrone.NotificationHandler;
+import sq.rogue.rosettadrone.util.util.NotificationHandler;
 import sq.rogue.rosettadrone.R;
 
-import static sq.rogue.rosettadrone.util.TYPE_DRONE_ID;
-import static sq.rogue.rosettadrone.util.TYPE_GCS_IP;
-import static sq.rogue.rosettadrone.util.TYPE_GCS_PORT;
-import static sq.rogue.rosettadrone.util.TYPE_VIDEO_IP;
-import static sq.rogue.rosettadrone.util.TYPE_VIDEO_PORT;
+import static sq.rogue.rosettadrone.util.util.TYPE_DRONE_ID;
+import static sq.rogue.rosettadrone.util.util.TYPE_GCS_IP;
+import static sq.rogue.rosettadrone.util.util.TYPE_GCS_PORT;
+import static sq.rogue.rosettadrone.util.util.TYPE_VIDEO_IP;
+import static sq.rogue.rosettadrone.util.util.TYPE_VIDEO_PORT;
 
 // Display value of preference in summary field
 

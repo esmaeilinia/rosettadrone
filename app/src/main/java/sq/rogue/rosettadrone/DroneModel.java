@@ -1,81 +1,30 @@
 package sq.rogue.rosettadrone;
 
-import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.MAVLink.MAVLinkPacket;
-import com.MAVLink.Messages.MAVLinkMessage;
-import com.MAVLink.common.msg_altitude;
-import com.MAVLink.common.msg_attitude;
-import com.MAVLink.common.msg_autopilot_version;
-import com.MAVLink.common.msg_battery_status;
-import com.MAVLink.common.msg_command_ack;
-import com.MAVLink.common.msg_global_position_int;
-import com.MAVLink.common.msg_gps_raw_int;
-import com.MAVLink.common.msg_heartbeat;
-import com.MAVLink.common.msg_home_position;
-import com.MAVLink.common.msg_mission_ack;
-import com.MAVLink.common.msg_mission_count;
-import com.MAVLink.common.msg_mission_item;
-import com.MAVLink.common.msg_mission_item_reached;
-import com.MAVLink.common.msg_mission_request;
-import com.MAVLink.common.msg_mission_request_list;
 import com.MAVLink.common.msg_param_value;
-import com.MAVLink.common.msg_power_status;
-import com.MAVLink.common.msg_radio_status;
-import com.MAVLink.common.msg_rc_channels;
-import com.MAVLink.common.msg_statustext;
-import com.MAVLink.common.msg_sys_status;
-import com.MAVLink.common.msg_vfr_hud;
-import com.MAVLink.common.msg_vibration;
-import com.MAVLink.enums.GPS_FIX_TYPE;
-import com.MAVLink.enums.MAV_AUTOPILOT;
-import com.MAVLink.enums.MAV_FRAME;
-import com.MAVLink.enums.MAV_MISSION_RESULT;
-import com.MAVLink.enums.MAV_MISSION_TYPE;
-import com.MAVLink.enums.MAV_MODE_FLAG;
-import com.MAVLink.enums.MAV_PROTOCOL_CAPABILITY;
 import com.MAVLink.enums.MAV_RESULT;
-import com.MAVLink.enums.MAV_STATE;
-import com.MAVLink.enums.MAV_TYPE;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.PortUnreachableException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import dji.common.airlink.SignalQualityCallback;
-import dji.common.battery.AggregationState;
-import dji.common.battery.BatteryState;
 import dji.common.camera.SettingsDefinitions;
 import dji.common.error.DJIError;
-import dji.common.flightcontroller.Attitude;
 import dji.common.flightcontroller.ConnectionFailSafeBehavior;
 import dji.common.flightcontroller.ControlMode;
 import dji.common.flightcontroller.FlightControlState;
-import dji.common.flightcontroller.GPSSignalLevel;
-import dji.common.flightcontroller.LocationCoordinate3D;
 import dji.common.flightcontroller.virtualstick.RollPitchControlMode;
 import dji.common.flightcontroller.virtualstick.VerticalControlMode;
 import dji.common.flightcontroller.virtualstick.YawControlMode;
-import dji.common.mission.waypoint.Waypoint;
-import dji.common.mission.waypoint.WaypointMission;
-import dji.common.mission.waypoint.WaypointMissionState;
-import dji.common.remotecontroller.HardwareState;
 import dji.common.util.CommonCallbacks;
-import dji.sdk.battery.Battery;
 import dji.sdk.mission.MissionControl;
 import dji.sdk.mission.waypoint.WaypointMissionOperator;
 import dji.sdk.products.Aircraft;
 import sq.rogue.rosettadrone.drone.RosettaMissionOperatorListener;
 
-import static com.MAVLink.enums.MAV_CMD.MAV_CMD_COMPONENT_ARM_DISARM;
 import static com.MAVLink.enums.MAV_CMD.MAV_CMD_DO_DIGICAM_CONTROL;
-import static com.MAVLink.enums.MAV_CMD.MAV_CMD_NAV_TAKEOFF;
 import static com.MAVLink.enums.MAV_COMPONENT.MAV_COMP_ID_AUTOPILOT1;
-import static sq.rogue.rosettadrone.util.getTimestampMicroseconds;
 
 
 public class DroneModel extends Aircraft implements CommonCallbacks.CompletionCallback {
