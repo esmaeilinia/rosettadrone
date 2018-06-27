@@ -5,56 +5,60 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import dji.common.error.DJIError;
 import dji.common.error.DJISDKError;
 import dji.sdk.base.BaseComponent;
 import dji.sdk.base.BaseProduct;
 import dji.sdk.products.Aircraft;
 import dji.sdk.sdkmanager.DJISDKManager;
+import sq.rogue.rosettadrone.drone.Drone;
 
 import static sq.rogue.rosettadrone.util.util.safeSleep;
 
 public class DJIManager {
     private final String TAG = this.getClass().getSimpleName();
 
-    private IDJIListener mDJIListener;
-
+    private static DJIManager instance;
     private static BaseProduct mProduct;
 
-    public static BaseProduct getProductInstance() {
-        if (mProduct == null) {
-            mProduct = DJISDKManager.getInstance().getProduct();
-        }
-        return mProduct;
-    }
+    private List<IDJIListener> mDJIListeners = new ArrayList<>();
 
-    public static void updateProduct(BaseProduct product) {
-        mProduct = product;
-    }
+    //region DJI Listeners/Callbacks
+    //---------------------------------------------------------------------------------------
 
     private BaseComponent.ComponentListener mDJIComponentListener = new BaseComponent.ComponentListener() {
         @Override
         public void onConnectivityChange(boolean isConnected) {
-
+            notifyStatusChange();
         }
     };
+
     private BaseProduct.BaseProductListener mDJIBaseProductListener = new BaseProduct.BaseProductListener() {
         @Override
         public void onComponentChange(BaseProduct.ComponentKey key, BaseComponent oldComponent, BaseComponent newComponent) {
             if (newComponent != null) {
                 newComponent.setComponentListener(mDJIComponentListener);
             }
-            mDJIListener.onStatusChange();
+            Log.d(TAG,
+                    String.format("onComponentChange key:%s, oldComponent:%s, newComponent:%s",
+                            key,
+                            oldComponent,
+                            newComponent));
+
+            notifyStatusChange();
         }
 
         @Override
         public void onConnectivityChange(boolean isConnected) {
             if (isConnected)
-                onDroneConnected();
+                notifyDroneConnected();
             else
-                onDroneDisconnected();
+                notifyDroneDisconnected();
 
-            mDJIListener.onStatusChange();
+            notifyStatusChange();
         }
     };
 
@@ -64,9 +68,10 @@ public class DJIManager {
 //            Log.d(TAG, error == null ? "success" : error.getDescription());
             if (error == DJISDKError.REGISTRATION_SUCCESS) {
                 DJISDKManager.getInstance().startConnectionToProduct();
-                mDJIListener.onRegistration(true);
+
+                notifyRegistration(true);
             } else {
-                mDJIListener.onRegistration(false);
+                notifyRegistration(false);
             }
             if (error != null) {
                 Log.e(TAG, error.toString());
@@ -80,84 +85,135 @@ public class DJIManager {
 
 
             if (mProduct == null) {
-                logMessageDJI("No DJI drone detected");
-                onDroneDisconnected();
+//                logMessageDJI("No DJI drone detected");
+                notifyDroneDisconnected();
             } else {
                 mProduct = newProduct;
                 mProduct.setBaseProductListener(mDJIBaseProductListener);
 
                 if (mProduct instanceof Aircraft) {
-                    logMessageDJI("DJI aircraft detected");
-                    mDJIListener.onDroneConnected();
+//                    logMessageDJI("DJI aircraft detected");
+                    notifyDroneConnected();
                 } else {
-                    logMessageDJI("DJI non-aircraft product detected");
-                    mDJIListener.onDroneDisconnected();
+//                    logMessageDJI("DJI non-aircraft product detected");
+                    notifyDroneDisconnected();
                 }
             }
 
-            mDJIListener.onStatusChange();
+           notifyStatusChange();
         }
     };
 
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region getInstance
+    //---------------------------------------------------------------------------------------
+
+    public static DJIManager getInstance() {
+        if (instance == null) {
+            instance = new DJIManager();
+        }
+        return instance;
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region notify
+    //---------------------------------------------------------------------------------------
+
+    /**
+     *
+     * @param result
+     */
+    private void notifyRegistration(boolean result) {
+        for (IDJIListener listener : mDJIListeners) {
+            listener.onRegistration(result);
+        }
+    }
+
+    /**
+     *
+     */
     private void notifyStatusChange() {
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                refreshModel();
-            }
-        });
-    }
-
-    private void refreshModel() {
-        if (mProduct != null && mProduct.isConnected()) {
+        for (IDJIListener listener : mDJIListeners) {
+            listener.onStatusChange();
         }
+//        Handler handler = new Handler(Looper.getMainLooper());
+//        handler.post(this::refreshModel);
     }
 
-    private void onDroneConnected() {
+//    private void refreshModel() {
+//        if (mProduct != null && mProduct.isConnected()) {
+//        }
+//    }
 
-        // Multiple tries and a timeout are necessary because of a bug that causes all the
-        // components of mProduct to be null sometimes.
-        int tries = 0;
-        while (!mModel.setDjiAircraft((Aircraft) mProduct)) {
-            safeSleep(1000);
-            logMessageDJI("Connecting to drone...");
-            tries++;
-            if (tries == 5) {
-                Toast.makeText(this, "Oops, DJI's SDK just glitched. Please restart the app.",
-                        Toast.LENGTH_LONG).show();
-                return;
-            }
+    /**
+     *
+     */
+    private void notifyDroneConnected() {
+        Drone drone = new Drone((Aircraft)mProduct);
+
+        for (IDJIListener listener : mDJIListeners) {
+            listener.onDroneConnected(drone);
         }
-        while (!mModel.loadParamsFromDJI()) {
+//        // Multiple tries and a timeout are necessary because of a bug that causes all the
+//        // components of mProduct to be null sometimes.
+//        int tries = 0;
+//        while (!mModel.setDjiAircraft((Aircraft) mProduct)) {
+//            safeSleep(1000);
+//            logMessageDJI("Connecting to drone...");
+//            tries++;
+//            if (tries == 5) {
+//                Toast.makeText(this, "Oops, DJI's SDK just glitched. Please restart the app.",
+//                        Toast.LENGTH_LONG).show();
+//                return;
+//            }
+//        }
+//        while (!mModel.loadParamsFromDJI()) {
+//
+//        }
+//
+//        sendDroneConnected();
 
+    }
+
+    /**
+     *
+     */
+    private void notifyDroneDisconnected() {
+        for (IDJIListener listener : mDJIListeners) {
+            listener.onDroneDisconnected();
         }
-
-        sendDroneConnected();
-
+//        logMessageDJI("Drone disconnected");
+//        mModel.setDjiAircraft(null);
+//        closeGCSCommunicator();
+//
+//        sendDroneDisconnected();
     }
 
-    private void onDroneDisconnected() {
-        logMessageDJI("Drone disconnected");
-        mModel.setDjiAircraft(null);
-        closeGCSCommunicator();
+    //---------------------------------------------------------------------------------------
+    //endregion
 
-        sendDroneDisconnected();
-    }
+    //region listener interface
+    //---------------------------------------------------------------------------------------
 
     /**
      *
      * @param listener
      */
-    public void setDJIListener(IDJIListener listener) {
-        mDJIListener = listener;
+    public void addDJIListener(IDJIListener listener) {
+        if (!mDJIListeners.contains(listener)) {
+            mDJIListeners.add(listener);
+        }
     }
 
     /**
      *
      */
-    public void removeDJIListener() {
-        mDJIListener = null;
+    public void removeDJIListener(IDJIListener listener) {
+        mDJIListeners.remove(listener);
     }
 
     /**
@@ -168,12 +224,25 @@ public class DJIManager {
         /**
          *
          */
-        void onDroneConnected();
+        void onDroneConnected(Drone drone);
 
+        /**
+         *
+         */
         void onDroneDisconnected();
 
+        /**
+         *
+         */
         void onStatusChange();
 
+        /**
+         *
+         * @param result
+         */
         void onRegistration(boolean result);
     }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
 }
