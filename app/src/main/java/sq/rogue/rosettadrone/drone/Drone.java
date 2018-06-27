@@ -27,9 +27,17 @@ package sq.rogue.rosettadrone.drone;
 //        OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 //        OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import dji.common.product.Model;
+import dji.sdk.airlink.AirLink;
+import dji.sdk.battery.Battery;
+import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.products.Aircraft;
+import dji.sdk.remotecontroller.RemoteController;
 
-public class Drone extends Aircraft {
+public class Drone {
+
+    //Have to use composition rather than inheritance since we can't construct a drone from an aircraft
+    private Aircraft mAircraft;
 
     private boolean mSafetyEnabled;
     private boolean mArmed;
@@ -62,7 +70,24 @@ public class Drone extends Aircraft {
     /**
      *
      */
+    public Drone(Aircraft aircraft) {
+        this.mAircraft = aircraft;
+    }
+    /**
+     *
+     */
     public Drone() {
+        mAircraft = new Aircraft();
+        init();
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region init
+    //---------------------------------------------------------------------------------------
+
+    private void init() {
         mSafetyEnabled = true;
         mArmed = false;
 
@@ -76,6 +101,40 @@ public class Drone extends Aircraft {
         mVoltage = 0;
 
         mCellVoltages = new int[10];
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region aircraft calls
+    //---------------------------------------------------------------------------------------
+
+    public void setAircraft(Aircraft aircraft) {
+        mAircraft = aircraft;
+    }
+
+    public Aircraft getAircraft() {
+        return mAircraft;
+    }
+
+    public RemoteController getRemoteController() {
+        return mAircraft.getRemoteController();
+    }
+
+    public Battery getBattery() {
+        return mAircraft.getBattery();
+    }
+
+    public Model getModel() {
+        return mAircraft.getModel();
+    }
+
+    public AirLink getAirLink() {
+        return mAircraft.getAirLink();
+    }
+
+    public FlightController getFlightController() {
+        return mAircraft.getFlightController();
     }
 
     //---------------------------------------------------------------------------------------

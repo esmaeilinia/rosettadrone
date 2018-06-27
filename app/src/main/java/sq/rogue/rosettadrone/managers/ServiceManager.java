@@ -16,7 +16,7 @@ import sq.rogue.rosettadrone.IVideoService;
 /**
  * Class to manage the telemetry and video services.
  */
-public class ServiceManager extends Service{
+public class ServiceManager extends Service {
     private static final String TAG = ServiceManager.class.getSimpleName();
 
     private boolean isVideoServiceRunning;

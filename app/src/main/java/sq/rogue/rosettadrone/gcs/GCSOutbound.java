@@ -27,6 +27,9 @@ package sq.rogue.rosettadrone.gcs;
 //        OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 //        OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.util.Log;
 
 import com.MAVLink.MAVLinkPacket;
@@ -83,7 +86,7 @@ import sq.rogue.rosettadrone.drone.Drone;
 import static com.MAVLink.enums.MAV_COMPONENT.MAV_COMP_ID_AUTOPILOT1;
 import static sq.rogue.rosettadrone.util.util.getTimestampMicroseconds;
 
-public class GCSOutbound implements Runnable {
+public class GCSOutbound {
     private final static String TAG = GCSOutbound.class.getSimpleName();
 
     //Current mavlink version
@@ -189,16 +192,6 @@ public class GCSOutbound implements Runnable {
     //---------------------------------------------------------------------------------------
     //endregion
 
-    //region main loop
-    //---------------------------------------------------------------------------------------
-
-    @Override
-    public void run() {
-
-    }
-
-    //---------------------------------------------------------------------------------------
-    //endregion
 
     //region tick
     //---------------------------------------------------------------------------------------

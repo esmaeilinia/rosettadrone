@@ -88,10 +88,10 @@ public class DJIManager {
 
                 if (mProduct instanceof Aircraft) {
                     logMessageDJI("DJI aircraft detected");
-                    onDroneConnected();
+                    mDJIListener.onDroneConnected();
                 } else {
                     logMessageDJI("DJI non-aircraft product detected");
-                    onDroneDisconnected();
+                    mDJIListener.onDroneDisconnected();
                 }
             }
 
@@ -111,7 +111,6 @@ public class DJIManager {
 
     private void refreshModel() {
         if (mProduct != null && mProduct.isConnected()) {
-
         }
     }
 
@@ -169,6 +168,10 @@ public class DJIManager {
         /**
          *
          */
+        void onDroneConnected();
+
+        void onDroneDisconnected();
+
         void onStatusChange();
 
         void onRegistration(boolean result);
