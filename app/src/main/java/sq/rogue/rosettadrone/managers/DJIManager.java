@@ -1,9 +1,6 @@
 package sq.rogue.rosettadrone.managers;
 
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,14 +13,10 @@ import dji.sdk.products.Aircraft;
 import dji.sdk.sdkmanager.DJISDKManager;
 import sq.rogue.rosettadrone.drone.Drone;
 
-import static sq.rogue.rosettadrone.util.util.safeSleep;
-
 public class DJIManager {
-    private final String TAG = this.getClass().getSimpleName();
-
     private static DJIManager instance;
     private static BaseProduct mProduct;
-
+    private final String TAG = this.getClass().getSimpleName();
     private List<IDJIListener> mDJIListeners = new ArrayList<>();
 
     //region DJI Listeners/Callbacks
@@ -100,7 +93,7 @@ public class DJIManager {
                 }
             }
 
-           notifyStatusChange();
+            notifyStatusChange();
         }
     };
 
@@ -124,7 +117,6 @@ public class DJIManager {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @param result
      */
     private void notifyRegistration(boolean result) {
@@ -153,7 +145,7 @@ public class DJIManager {
      *
      */
     private void notifyDroneConnected() {
-        Drone drone = new Drone((Aircraft)mProduct);
+        Drone drone = new Drone((Aircraft) mProduct);
 
         for (IDJIListener listener : mDJIListeners) {
             listener.onDroneConnected(drone);
@@ -200,7 +192,6 @@ public class DJIManager {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
      * @param listener
      */
     public void addDJIListener(IDJIListener listener) {
@@ -237,7 +228,6 @@ public class DJIManager {
         void onStatusChange();
 
         /**
-         *
          * @param result
          */
         void onRegistration(boolean result);

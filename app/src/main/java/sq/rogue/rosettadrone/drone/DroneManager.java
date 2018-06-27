@@ -70,6 +70,10 @@ public class DroneManager {
     //region constructors
     //---------------------------------------------------------------------------------------
 
+    /**
+     *
+     * @param drone
+     */
     public DroneManager(Drone drone) {
         mUplinkQuality = 0;
         mDownlinkQuality = 0;
@@ -130,6 +134,20 @@ public class DroneManager {
 
         waypointMissionOperator.addListener(new MissionOperatorListener());
 
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region drone
+    //---------------------------------------------------------------------------------------
+
+    /**
+     *
+     * @return
+     */
+    public Drone getDrone() {
+        return mDrone;
     }
 
     //---------------------------------------------------------------------------------------
@@ -450,7 +468,6 @@ public class DroneManager {
     }
     //---------------------------------------------------------------------------------------
     //endregion
-
 
     //region waypoints
     //---------------------------------------------------------------------------------------
