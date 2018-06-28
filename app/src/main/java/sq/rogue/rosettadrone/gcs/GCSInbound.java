@@ -214,43 +214,6 @@ public class GCSInbound implements Runnable {
 
         }
 
-        private void createTelemetrySocket() {
-            close();
-
-            String gcsIPString = "127.0.0.1";
-
-            if (mainActivityWeakReference.get().prefs.getBoolean("pref_external_gcs", false))
-                gcsIPString = mainActivityWeakReference.get().prefs.getString("pref_gcs_ip", "127.0.0.1");
-
-
-            int telemIPPort = Integer.parseInt(mainActivityWeakReference.get().prefs.getString("pref_telem_port", "14550"));
-
-            try {
-                mainActivityWeakReference.get().socket = new DatagramSocket();
-                mainActivityWeakReference.get().socket.connect(InetAddress.getByName(gcsIPString), telemIPPort);
-                mainActivityWeakReference.get().socket.setSoTimeout(10);
-                mainActivityWeakReference.get().logMessageDJI("Starting GCS telemetry link: " + gcsIPString + ":" + String.valueOf(telemIPPort));
-            } catch (SocketException e) {
-                Log.d(TAG, "createTelemetrySocket() - socket exception");
-                Log.d(TAG, "exception", e);
-                mainActivityWeakReference.get().logMessageDJI("Telemetry socket exception: " + gcsIPString + ":" + String.valueOf(telemIPPort));
-            } // TODO
-            catch (UnknownHostException e) {
-                Log.d(TAG, "createTelemetrySocket() - unknown host exception");
-                Log.d(TAG, "exception", e);
-                mainActivityWeakReference.get().logMessageDJI("Unknown telemetry host: " + gcsIPString + ":" + String.valueOf(telemIPPort));
-            } // TODO
-
-//            Log.d(TAG, mainActivityWeakReference.get().socket.getInetAddress().toString());
-//            Log.d(TAG, mainActivityWeakReference.get().socket.getLocalAddress().toString());
-//            Log.d(TAG, String.valueOf(mainActivityWeakReference.get().socket.getPort()));
-//            Log.d(TAG, String.valueOf(mainActivityWeakReference.get().socket.getLocalPort()));
-
-            if (mainActivityWeakReference.get() != null) {
-                mainActivityWeakReference.get().mModel.setSocket(mainActivityWeakReference.get().socket);
-            }
-        }
-
         protected void close() {
             if (mainActivityWeakReference.get().socket != null) {
                 mainActivityWeakReference.get().socket.disconnect();

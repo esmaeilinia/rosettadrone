@@ -28,6 +28,8 @@ import sq.rogue.rosettadrone.IVideoService;
 import sq.rogue.rosettadrone.R;
 
 import static android.support.v4.app.NotificationCompat.PRIORITY_MIN;
+import static sq.rogue.rosettadrone.util.NotificationHandler.NOTIFICATION_ID;
+import static sq.rogue.rosettadrone.util.NotificationHandler.createNotificationChannel;
 
 public class VideoService extends Service {
 
@@ -114,13 +116,13 @@ public class VideoService extends Service {
 
     public void setActionDroneConnected() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            String channelID = createNotificationChannel();
+            String channelID = createNotificationChannel(this);
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelID);
             Notification notification = builder.setOngoing(true)
                     .setSmallIcon(R.mipmap.ic_launcher)
                     .setPriority(PRIORITY_MIN)
                     .build();
-            startForeground(1, notification);
+            startForeground(NOTIFICATION_ID, notification);
         }
 //        initVideoStreamDecoder();
 //        initPacketizer();
@@ -141,19 +143,6 @@ public class VideoService extends Service {
         }
 
         isRunning = true;
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private String createNotificationChannel() {
-        String channelID = "video_service";
-        String channelName = "RosettaDrone Video Service";
-        NotificationChannel chan = new NotificationChannel(channelID,
-                channelName, NotificationManager.IMPORTANCE_DEFAULT);
-        chan.setLightColor(Color.BLUE);
-        chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
-        NotificationManager service = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        service.createNotificationChannel(chan);
-        return channelID;
     }
 
     private void setActionDroneDisconnected() {
