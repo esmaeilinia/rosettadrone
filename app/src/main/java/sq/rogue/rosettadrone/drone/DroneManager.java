@@ -469,6 +469,44 @@ public class DroneManager {
     //---------------------------------------------------------------------------------------
     //endregion
 
+    //region link quality
+    //---------------------------------------------------------------------------------------
+
+    /**
+     *
+     * @return
+     */
+    public int getDownlinkQuality() {
+        return mDownlinkQuality;
+    }
+
+    /**
+     *
+     * @param downlinkQuality
+     */
+    public void setDownlinkQuality(int downlinkQuality) {
+        this.mDownlinkQuality = downlinkQuality;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public int getUplinkQuality() {
+        return mDownlinkQuality;
+    }
+
+    /**
+     *
+     * @param uplinkQuality
+     */
+    public void setUplinkQuality(int uplinkQuality) {
+        this.mDownlinkQuality = uplinkQuality;
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
     //region waypoints
     //---------------------------------------------------------------------------------------
 

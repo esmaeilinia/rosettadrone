@@ -27,8 +27,6 @@ package sq.rogue.rosettadrone.drone;
 //        OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 //        OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import android.os.Parcel;
-import android.os.Parcelable;
 
 import dji.common.product.Model;
 import dji.sdk.airlink.AirLink;
@@ -37,7 +35,7 @@ import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.products.Aircraft;
 import dji.sdk.remotecontroller.RemoteController;
 
-public class Drone implements Parcelable {
+public class Drone {
 
     //Have to use composition rather than inheritance since we can't construct a drone from an aircraft
     private Aircraft mAircraft;
@@ -83,14 +81,6 @@ public class Drone implements Parcelable {
     public Drone() {
         mAircraft = new Aircraft();
         init();
-    }
-
-    /**
-     *
-     * @param in
-     */
-    public Drone(Parcel in) {
-
     }
 
     //---------------------------------------------------------------------------------------
@@ -353,56 +343,4 @@ public class Drone implements Parcelable {
     //---------------------------------------------------------------------------------------
     //endregion
 
-    //region parcelable
-    //---------------------------------------------------------------------------------------
-
-    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
-        public Drone createFromParcel(Parcel in) {
-            return new Drone(in);
-        }
-
-        public Drone[] newArray(int size) {
-            return new Drone[size];
-        }
-    };
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-//        dest.write
-//        private Aircraft mAircraft;
-//
-//        private boolean mSafetyEnabled;
-//        private boolean mArmed;
-//
-//
-//        private int mThrottle;
-//
-//        private int mGCSCommandedMode;
-//
-//        //Voltage in mV
-//        private int mVoltage;
-//
-//        //Current in mA
-//        private int mCurrent;
-//
-//        //Charge in mAh
-//        private int mChargeRemaining;
-//
-//        //Charge capacity in mAh
-//        private int mCapacity;
-//
-//        //Temp in celsius
-//        private float mTemp;
-//
-//        private int[] mCellVoltages;
-
-    }
-
-    //---------------------------------------------------------------------------------------
-    //endregion
 }

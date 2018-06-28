@@ -24,7 +24,9 @@ public class TelemetryService extends Service implements DJIManager.IDJIListener
     protected SharedPreferences sharedPreferences;
 
     private DroneManager mDroneManager;
-    private Drone mDrone;
+
+    private boolean droneConnected = false;
+    private boolean isRunning = false;
 
     private GCSOutbound gcsOutbound;
 
@@ -53,8 +55,12 @@ public class TelemetryService extends Service implements DJIManager.IDJIListener
 
     }
 
+    private void restart() {
+
+    }
+
     private void tick() {
-        handler.post(() -> gcsOutbound.tick());
+        handler.post(() -> gcsOutbound.tick(mDroneManager.getDrone(), mDroneManager.));
     }
 
     //region service binding
@@ -73,17 +79,35 @@ public class TelemetryService extends Service implements DJIManager.IDJIListener
 
         @Override
         public boolean start() throws RemoteException {
-            return false;
+            if (!droneConnected || isRunning) {
+                return false;
+            }
+
+            TelemetryService.this.start();
+
+            return true;
         }
 
         @Override
         public boolean stop() throws RemoteException {
+            if (!isRunning) {
+                return false;
+            }
 
-            return false;
+            TelemetryService.this.stop();
+            return true;
         }
 
         @Override
         public boolean restart() throws RemoteException {
+            if (droneConnected) {
+                if (!isRunning) {
+                    TelemetryService.this.start();
+                } else {
+                    TelemetryService.this.restart();
+                }
+                return true;
+            }
             return false;
         }
 
@@ -97,30 +121,30 @@ public class TelemetryService extends Service implements DJIManager.IDJIListener
     //---------------------------------------------------------------------------------------
     //endregion
 
-//    //region DJI Manager interface
-//    //---------------------------------------------------------------------------------------
-//
-//    @Override
-//    public void onDroneConnected(Drone drone) {
-//        mDrone = drone;
-//        mDroneManager = new DroneManager(mDrone);
-//    }
-//
-//    @Override
-//    public void onDroneDisconnected() {
-//
-//    }
-//
-//    @Override
-//    public void onStatusChange() {
-//
-//    }
-//
-//    @Override
-//    public void onRegistration(boolean result) {
-//
-//    }
-//
-//    //---------------------------------------------------------------------------------------
-//    //endregion
+    //region DJI Manager interface
+    //---------------------------------------------------------------------------------------
+
+    @Override
+    public void onDroneConnected(Drone drone) {
+        mDroneManager = new DroneManager(mDrone);
+        droneConnected = true;
+    }
+
+    @Override
+    public void onDroneDisconnected() {
+        droneConnected = false;
+    }
+
+    @Override
+    public void onStatusChange() {
+
+    }
+
+    @Override
+    public void onRegistration(boolean result) {
+
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
 }
