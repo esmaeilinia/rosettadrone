@@ -69,6 +69,7 @@ public class TelemetryService extends Service implements DJIManager.IDJIListener
     }
 
     private void start() {
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             String channelID = createNotificationChannel(this);
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelID);
@@ -79,18 +80,13 @@ public class TelemetryService extends Service implements DJIManager.IDJIListener
             startForeground(NOTIFICATION_ID, notification);
         }
 
-        handlerThread = new HandlerThread("TickThread");
-        handlerThread.start();
-        Looper looper = handlerThread.getLooper();
-        handler = new Handler(looper);
 
         telemetryThread = new Thread(this::run);
         telemetryThread.start();
     }
 
     private void stop() {
-        handler.removeCallbacksAndMessages(null);
-        handlerThread.quit();
+
 
         stopForeground(true);
     }
@@ -178,6 +174,32 @@ public class TelemetryService extends Service implements DJIManager.IDJIListener
     //region tick
     //---------------------------------------------------------------------------------------
 
+    /**
+     *
+     */
+    private void startTicks() {
+        handlerThread = new HandlerThread("TickThread");
+        handlerThread.start();
+        Looper looper = handlerThread.getLooper();
+        handler = new Handler(looper);
+
+        handler.post(tick);
+    }
+
+    /**
+     *
+     */
+    private void stopTicks() {
+        handler.removeCallbacksAndMessages(null);
+        handlerThread.quit();
+
+        handlerThread = null;
+        handler = null;
+    }
+
+    /**
+     *
+     */
     private Runnable tick = new Runnable() {
         @Override
         public void run() {
