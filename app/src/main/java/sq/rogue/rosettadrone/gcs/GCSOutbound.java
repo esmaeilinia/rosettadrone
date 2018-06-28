@@ -198,9 +198,9 @@ public class GCSOutbound {
 
     /**
      * @param drone
-     * @param linkQuality
+     * @param uplinkQuality
      */
-    public void tick(Drone drone, int linkQuality) {
+    public void tick(Drone drone, int uplinkQuality) {
         ticks += 100;
 
         if (drone == null) {
@@ -218,7 +218,7 @@ public class GCSOutbound {
                 sendGlobalPositionInt(drone);
                 sendGPSRawInt(drone);
                 sendRadioStatus();
-                sendRCChannels(linkQuality);
+                sendRCChannels(uplinkQuality);
             }
             if (ticks % 1000 == 0) {
                 sendHeartbeat(drone);

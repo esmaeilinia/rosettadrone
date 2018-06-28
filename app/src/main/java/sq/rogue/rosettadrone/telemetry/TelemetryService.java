@@ -32,6 +32,8 @@ public class TelemetryService extends Service implements DJIManager.IDJIListener
 
     private HandlerThread handlerThread;
     private Handler handler;
+    private Thread telemetryThread;
+
 
     @Override
     public void onCreate() {
@@ -45,23 +47,56 @@ public class TelemetryService extends Service implements DJIManager.IDJIListener
     }
 
     private void start() {
+        startForeground();
+
         handlerThread = new HandlerThread("TickThread");
         handlerThread.start();
         Looper looper = handlerThread.getLooper();
         handler = new Handler(looper);
+
+        telemetryThread = new Thread(this::run);
+        telemetryThread.start();
     }
 
     private void stop() {
+        handler.removeCallbacksAndMessages(null);
+        handlerThread.quit();
 
+        stopForeground();
     }
 
     private void restart() {
 
     }
 
-    private void tick() {
-        handler.post(() -> gcsOutbound.tick(mDroneManager.getDrone(), mDroneManager.));
+    //region tick
+    //---------------------------------------------------------------------------------------
+
+    private Runnable tick = new Runnable() {
+        @Override
+        public void run() {
+            gcsOutbound.tick(mDroneManager.getDrone(), mDroneManager.getUplinkQuality());
+
+            handler.postDelayed(tick, 100);
+        }
+    };
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region main loop
+    //---------------------------------------------------------------------------------------
+
+
+    private void run() {
+
+        while (!telemetryThread.isInterrupted()) {
+
+        }
     }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
 
     //region service binding
     //---------------------------------------------------------------------------------------
@@ -126,7 +161,7 @@ public class TelemetryService extends Service implements DJIManager.IDJIListener
 
     @Override
     public void onDroneConnected(Drone drone) {
-        mDroneManager = new DroneManager(mDrone);
+        mDroneManager = new DroneManager(drone);
         droneConnected = true;
     }
 
