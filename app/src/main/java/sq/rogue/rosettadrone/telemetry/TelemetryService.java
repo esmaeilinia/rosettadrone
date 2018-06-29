@@ -217,7 +217,12 @@ public class TelemetryService extends Service implements DJIManager.IDJIListener
 
     private void run() {
 
-        gcsOutbound = new GCSOutbound()
+        try {
+            gcsOutbound = new GCSOutbound(getIP(), getPort());
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            return;
+        }
 
         while (!Thread.interrupted()) {
 
