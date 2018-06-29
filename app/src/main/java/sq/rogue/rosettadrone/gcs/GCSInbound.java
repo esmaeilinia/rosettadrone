@@ -11,20 +11,22 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import sq.rogue.rosettadrone.telemetry.MAVLinkReceiver;
 import sq.rogue.rosettadrone.MainActivity;
+import sq.rogue.rosettadrone.drone.DroneManager;
 
 public class GCSInbound implements Runnable {
     private final static int BUF_SIZE = 512;
 
     private DatagramSocket mSocket;
 
+    private DroneManager mDroneManager;
+
     private Parser mMAVLinkParser;
+    private MAVLinkReceiver mMAVLinkReceiver;
 
     //region constructors
     //---------------------------------------------------------------------------------------
@@ -37,6 +39,28 @@ public class GCSInbound implements Runnable {
     public GCSInbound(DatagramSocket socket) {
         mSocket = socket;
         mMAVLinkParser = new Parser();
+    }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
+    //region MAVLink Receiver
+    //---------------------------------------------------------------------------------------
+
+    /**
+     *
+     * @param droneManager
+     */
+    public void initMAVLinkReceiver(DroneManager droneManager) {
+        mMAVLinkReceiver = new MAVLinkReceiver(droneManager);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public MAVLinkReceiver getMAVLinkReceiver() {
+        return mMAVLinkReceiver;
     }
 
     //---------------------------------------------------------------------------------------
@@ -81,7 +105,7 @@ public class GCSInbound implements Runnable {
                         MAVLinkMessage msg = packet.unpack();
                         if (mainActivityWeakReference.get().prefs.getBoolean("pref_log_mavlink", false))
                             mainActivityWeakReference.get().logMessageFromGCS(msg.toString());
-                        mMavlinkReceiver.process(msg);
+                        mMAVLinkReceiver.process(msg);
                     }
                 }
             } catch (IOException e) {

@@ -1,4 +1,4 @@
-package sq.rogue.rosettadrone;
+package sq.rogue.rosettadrone.telemetry;
 
 import android.util.Log;
 
@@ -25,6 +25,11 @@ import dji.common.mission.waypoint.WaypointMissionFlightPathMode;
 import dji.common.mission.waypoint.WaypointMissionGotoWaypointMode;
 import dji.common.mission.waypoint.WaypointMissionHeadingMode;
 import dji.common.mission.waypoint.WaypointMissionState;
+import sq.rogue.rosettadrone.ArduCopterFlightModes;
+import sq.rogue.rosettadrone.DroneModel;
+import sq.rogue.rosettadrone.MAVParameter;
+import sq.rogue.rosettadrone.MainActivity;
+import sq.rogue.rosettadrone.drone.DroneManager;
 
 import static com.MAVLink.common.msg_command_int.MAVLINK_MSG_ID_COMMAND_INT;
 import static com.MAVLink.common.msg_command_long.MAVLINK_MSG_ID_COMMAND_LONG;
@@ -59,23 +64,31 @@ import static dji.common.flightcontroller.FlightControlState.ATTI;
 
 public class MAVLinkReceiver {
     private final String TAG = "RosettaDrone";
+
+    private final float AUTO_FLIGHT_SPEED = 5f;
+    private final float MAX_FLIGHT_SPEED = 10f;
+
+    private DroneManager mDroneManager;
+
     private final int WP_STATE_INACTIVE = 0;
     private final int WP_STATE_REQ_COUNT = 1;
     private final int WP_STATE_REQ_WP = 2;
-    DroneModel mModel;
     private long mTimeStampLastGCSHeartbeat = 0;
     private int mNumGCSWaypoints = 0;
     private int wpState = 0;
-    private MainActivity parent;
     private WaypointMission.Builder mBuilder;
     private ArrayList<msg_mission_item> mMissionItemList;
 
-    public MAVLinkReceiver(MainActivity parent, DroneModel model) {
+    //region constructors
+    //---------------------------------------------------------------------------------------
 
-        this.parent = parent;
-        this.mModel = model;
-
+    public MAVLinkReceiver(DroneManager droneManager) {
+        mDroneManager = droneManager;
     }
+
+    //---------------------------------------------------------------------------------------
+    //endregion
+
 
     public void process(MAVLinkMessage msg) {
         switch (msg.msgid) {
@@ -88,32 +101,32 @@ public class MAVLinkReceiver {
                 switch (msg_cmd.command) {
                     case MAV_CMD_COMPONENT_ARM_DISARM:
                         if (msg_cmd.param1 == 1)
-                            mModel.armMotors();
+                            mDroneManager.armMotors();
                         else
-                            mModel.disarmMotors();
+                            mDroneManager.disarmMotors();
 
                         break;
                     case MAV_CMD_DO_SET_MODE:
                         changeFlightMode((int) msg_cmd.param1);
                         break;
                     case MAV_CMD_NAV_LOITER_UNLIM:
-                        mModel.set_flight_mode(ATTI);
+                        mDroneManager.set_flight_mode(ATTI);
                         break;
                     case MAV_CMD_NAV_TAKEOFF:
-                        mModel.do_takeoff();
+                        mDroneManager.sendTakeoff();
                         break;
                     case MAV_CMD_NAV_LAND:
-                        mModel.do_land();
+                        mDroneManager.sendLand();
                         break;
                     case MAV_CMD_DO_SET_HOME:
                         // TODO;
                         break;
                     case MAV_CMD_NAV_RETURN_TO_LAUNCH:
-                        mModel.do_go_home();
+                        mDroneManager.sendHome();
                         mModel.send_command_ack(MAV_CMD_NAV_RETURN_TO_LAUNCH, MAV_RESULT.MAV_RESULT_ACCEPTED);
                         break;
                     case MAV_CMD_GET_HOME_POSITION:
-                        mModel.send_home_position();
+                        mDroneManager.send();
                         break;
                     case MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES:
                         mModel.send_autopilot_version();
@@ -124,7 +137,7 @@ public class MAVLinkReceiver {
                         break;
                     case MAV_CMD_DO_DIGICAM_CONTROL:
                         // DEPRECATED but still used by QGC
-                        mModel.takePhoto();
+                        mDroneManager.takePhoto();
                         break;
                 }
                 break;
@@ -315,6 +328,6 @@ public class MAVLinkReceiver {
         parent.logMessageDJI("Speed for mission will be " + mBuilder.getAutoFlightSpeed() + " m/s");
         parent.logMessageDJI("==============================");
         mBuilder.waypointList(dji_wps).waypointCount(dji_wps.size());
-        mModel.setWaypointMission(mBuilder.build());
+        mDroneManager.setWaypointMission(mBuilder.build());
     }
 }

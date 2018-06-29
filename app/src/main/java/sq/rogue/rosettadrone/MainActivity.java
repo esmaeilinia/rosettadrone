@@ -50,6 +50,7 @@ import dji.sdk.base.BaseProduct;
 import dji.sdk.sdkmanager.DJISDKManager;
 import sq.rogue.rosettadrone.logs.LogFragment;
 import sq.rogue.rosettadrone.settings.SettingsActivity;
+import sq.rogue.rosettadrone.telemetry.MAVLinkReceiver;
 import sq.rogue.rosettadrone.util.util;
 import sq.rogue.rosettadrone.video.VideoService;
 
