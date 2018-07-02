@@ -69,14 +69,15 @@ public class Drone {
     //---------------------------------------------------------------------------------------
 
     /**
-     *
+     * Create a drone from an existing DJI aircraft
      */
     public Drone(Aircraft aircraft) {
-        this.mAircraft = aircraft;
+        mAircraft = aircraft;
+        init();
     }
 
     /**
-     *
+     * Create a drone from a new aircraft
      */
     public Drone() {
         mAircraft = new Aircraft();
@@ -89,6 +90,9 @@ public class Drone {
     //region init
     //---------------------------------------------------------------------------------------
 
+    /**
+     * Initializes/bootstraps drone wrapper for a DJI aircraft
+     */
     private void init() {
         mSafetyEnabled = true;
         mArmed = false;
@@ -111,32 +115,79 @@ public class Drone {
     //region aircraft calls
     //---------------------------------------------------------------------------------------
 
+    /**
+     * Set the aircraft base for the drone
+     * @param aircraft A non-null {@link Aircraft}
+     */
     public void setAircraft(Aircraft aircraft) {
         mAircraft = aircraft;
     }
 
+    /**
+     * Gets the aircraft base for the drone
+     * @return The {@link Aircraft} if it is set, otherwise null
+     */
     public Aircraft getAircraft() {
         return mAircraft;
     }
 
+    /**
+     * Gets the RC for the drone from the {@link Aircraft}
+     * @return The {@link RemoteController} if the aircraft is set, otherwise null.
+     */
     public RemoteController getRemoteController() {
-        return mAircraft.getRemoteController();
+        if (mAircraft != null) {
+            return mAircraft.getRemoteController();
+        } else {
+            return null;
+        }
     }
 
+    /**
+     * Gets the Battery for the drone from the {@link Aircraft}
+     * @return The {@link Battery} if the aircraft is set, otherwise null.
+     */
     public Battery getBattery() {
-        return mAircraft.getBattery();
+        if (mAircraft != null) {
+            return mAircraft.getBattery();
+        } else {
+            return null;
+        }
     }
 
+    /**
+     * Gets the Model of the drone from the {@link Aircraft}
+     * @return The {@link Model} if the aircraft is set, otherwise null.
+     */
     public Model getModel() {
-        return mAircraft.getModel();
-    }
+        if (mAircraft != null) {
+            return mAircraft.getModel();
+        } else {
+            return null;
+        }    }
 
+    /**
+     * Gets the AirLink for the drone from the {@link Aircraft}
+     * @return The {@link AirLink} if the aircraft is set, otherwise null.
+     */
     public AirLink getAirLink() {
-        return mAircraft.getAirLink();
+        if (mAircraft != null) {
+            return mAircraft.getAirLink();
+        } else {
+            return null;
+        }
     }
 
+    /**
+     * Gets the FlightController for the drone from the {@link Aircraft}
+     * @return The {@link FlightController} if the aircraft is set, otherwise null.
+     */
     public FlightController getFlightController() {
-        return mAircraft.getFlightController();
+        if (mAircraft != null) {
+            return mAircraft.getFlightController();
+        } else {
+            return null;
+        }
     }
 
     //---------------------------------------------------------------------------------------
