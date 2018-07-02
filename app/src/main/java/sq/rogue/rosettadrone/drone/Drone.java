@@ -217,14 +217,16 @@ public class Drone {
     //---------------------------------------------------------------------------------------
 
     /**
-     * @return
+     * Gets the arming status of the drone
+     * @return true if the drone is armed, false if the drone is not armed.
      */
     public boolean isArmed() {
         return mArmed;
     }
 
     /**
-     * @param armed
+     * Sets the arming status of the drone.
+     * @param armed true if the drone is to be armed, otherwise false.
      */
     public void setArmed(boolean armed) {
         this.mArmed = mArmed;
