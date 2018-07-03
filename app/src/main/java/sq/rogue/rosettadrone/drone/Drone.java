@@ -239,15 +239,19 @@ public class Drone {
     //---------------------------------------------------------------------------------------
 
     /**
-     * @return
+     * Returns the commanded type for the drone.
+     * @return an int value corresponding to commanded mode type
      */
+    //TODO cleanup docs on commanded modes
     public int getCommandedMode() {
         return mGCSCommandedMode;
     }
 
     /**
-     * @param mode
+     * Set the commanded mode type for the drone.
+     * @param mode the int value corresponding to the commanded mode type
      */
+    //TODO cleanup docs on commanded modes
     public void setGCSCommandedMode(int mode) {
         mGCSCommandedMode = mode;
     }
@@ -260,14 +264,16 @@ public class Drone {
     //---------------------------------------------------------------------------------------
 
     /**
-     * @return
+     * Get the throttle status for the drone
+     * @return the int value corresponding to the amount of throttle being applied by the motors
      */
     public int getThrottle() {
         return mThrottle;
     }
 
     /**
-     * @param throttle
+     * Set the throttle status for the drone
+     * @param throttle The int value corresponding to the amount of throttle to be applied by the motors
      */
     public void setThrottle(int throttle) {
         this.mThrottle = throttle;
@@ -280,14 +286,16 @@ public class Drone {
     //---------------------------------------------------------------------------------------
 
     /**
-     * @return
+     * Gets the Drone's IMU temperature from the {@link Aircraft} in celsius
+     * @return The temperature in celsius as floating point
      */
     public float getTemp() {
         return mTemp;
     }
 
     /**
-     * @param temp
+     * Set the Drone's IMU temperature in celsius
+     * @param temp The temperature in celsius as floating point
      */
     public void setTemp(float temp) {
         this.mTemp = temp;
@@ -300,14 +308,16 @@ public class Drone {
     //---------------------------------------------------------------------------------------
 
     /**
-     * @return
+     * Gets the Drone's maximum battery capacity from the {@link Aircraft}
+     * @return The {@link Battery}'s maximum capacity in mAh
      */
     public int getCapacity() {
         return mCapacity;
     }
 
     /**
-     * @param capacity
+     * Set the Drone's battery capacity. Should be called on initialization/setup
+     * @param capacity The {@link Battery}'s maximum capacity in mAh
      */
     public void setCapacity(int capacity) {
         this.mCapacity = capacity;
@@ -320,14 +330,16 @@ public class Drone {
     //---------------------------------------------------------------------------------------
 
     /**
-     * @return
+     * Get the remaining charge on the Drone's battery
+     * @return The {@link Battery}'s remaining capacity in mAh
      */
     public int getChargeRemaining() {
         return mChargeRemaining;
     }
 
     /**
-     * @param chargeRemaining
+     * Set the Drone's remaining battery charge
+     * @param chargeRemaining The {@link Battery}'s remaining charge in mAh
      */
     public void setChargeRemaining(int chargeRemaining) {
         this.mChargeRemaining = chargeRemaining;
@@ -340,14 +352,17 @@ public class Drone {
     //---------------------------------------------------------------------------------------
 
     /**
-     * @return
+     * Get the {@link Battery}'s current current.
+     * @return The {@link Battery}'s current current in mA.
      */
     public int getCurrent() {
         return mCurrent;
     }
 
     /**
-     * @param current
+     * Sets the real-time current on the battery. Should only be called from the battery state callback
+     * from the backing Aircraft.
+     * @param current The {@link Battery}'s current current in mA.
      */
     public void setCurrent(int current) {
         this.mCurrent = current;
@@ -360,14 +375,17 @@ public class Drone {
     //---------------------------------------------------------------------------------------
 
     /**
-     * @return
+     * Get the {@link Battery}'s current voltage
+     * @return The {@link Battery}'s current voltage in mV.
      */
     public int getVoltage() {
         return mVoltage;
     }
 
     /**
-     * @param voltage
+     * Set the real-time voltage on the battery. Should only be called from the battery state callback
+     * from the backing {@link Aircraft}.
+     * @param voltage The {@link Battery}'s current voltage in mV.
      */
     public void setVoltage(int voltage) {
         this.mVoltage = voltage;
@@ -380,14 +398,17 @@ public class Drone {
     //---------------------------------------------------------------------------------------
 
     /**
-     * @return
+     * Get the battery cell voltages.
+     * @return An int array containing each cell's voltage in mV.
      */
     public int[] getCellVoltages() {
         return mCellVoltages;
     }
 
     /**
-     * @param cellVoltages
+     * Set the real-time voltage on each battery cell. Should only be called from the battery state callback
+     * from the backing {@link Aircraft}
+     * @param cellVoltages An int array containing each cell's voltage in mV.
      */
     public void setCellVoltages(int[] cellVoltages) {
         this.mCellVoltages = cellVoltages;
