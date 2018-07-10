@@ -399,7 +399,7 @@ public class Drone {
 
     /**
      * Get the battery cell voltages.
-     * @return An int 826array containing each cell's voltage in mV.
+     * @return An int array containing each cell's voltage in mV.
      */
     public int[] getCellVoltages() {
         return mCellVoltages;
